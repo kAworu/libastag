@@ -1,4 +1,5 @@
 
+# TODO
 module VioletAPI
 
   # the VioletAPI url.
@@ -60,6 +61,7 @@ module VioletAPI
   end # module Core
 
 
+
   # actions are used to retrieve informations about the
   # Nabaztag or the Nabaztag's owners.
   # see http://api.nabaztag.com/docs/home.html#getinfo
@@ -81,35 +83,63 @@ module VioletAPI
 
 
     # Preview the TTS or music (with music id) without sending it
-    GET_LINKPREVIEW     = ActionEvent.new  1
+    # see #Response::LinkPreview
+    GET_LINKPREVIEW = ActionEvent.new 1
+
     # Get a list of your friends
-    GET_FRIENDS_LIST    = ActionEvent.new  2
+    # see #Response::FriendList
+    GET_FRIENDS_LIST = ActionEvent.new 2
+
     # Get a count and the list of the messages in your inbox
-    GET_INBOX_LIST      = ActionEvent.new  3
+    # see #Response::RecivedMsgList
+    GET_INBOX_LIST = ActionEvent.new 3
+
     # Get the timezone in which your Nabaztag is set
-    GET_TIMEZONE        = ActionEvent.new  4
+    # see #Response::NabaTimezone
+    GET_TIMEZONE = ActionEvent.new 4
+
     # Get the signature defined for the Nabaztag
-    GET_SIGNATURE       = ActionEvent.new  5
+    # see #Response::NabaSignature
+    GET_SIGNATURE = ActionEvent.new 5
+
     # Get a count and the list of people in your blacklist
-    GET_BLACKLISTED     = ActionEvent.new  6
+    # see #Response::NabaBlacklist
+    GET_BLACKLISTED = ActionEvent.new 6
+
     # Get to know if the Nabaztag is sleeping (YES) or not (NO)
-    GET_RABBIT_STATUS   = ActionEvent.new  7
+    # see Response::RabbitSleep
+    GET_RABBIT_STATUS = ActionEvent.new 7
+
     # Get to know if the Nabaztag is a Nabaztag (V1) or a Nabaztag/tag (V2)
-    GET_RABBIT_VERSION  = ActionEvent.new  8
+    # see Response::RabbitVersion
+    GET_RABBIT_VERSION = ActionEvent.new 8
+
     # Get a list of all supported languages/voices for TTS (text to speach) engine
-    GET_LANG_VOICE      = ActionEvent.new  9
+    # see Response::TtsVoiceList
+    GET_LANG_VOICE = ActionEvent.new 9
+
     # Get the name of the Nabaztag
-    GET_RABBIT_NAME     = ActionEvent.new 10
+    # see Response::NabName
+    GET_RABBIT_NAME = ActionEvent.new 10
+
     # Get the languages selected for the Nabaztag
-    GET_SELECTED_LANG   = ActionEvent.new 11
+    # see Response::UserLangList
+    GET_SELECTED_LANG = ActionEvent.new 11
+
     # Get a preview of a message. This works only with the urlPlay parameter and URLs like broad/001/076/801/262.mp3
+    # see Response::LinkPreview
     GET_MESSAGE_PREVIEW = ActionEvent.new 12
+
     # Send your Rabbit to sleep
-    SET_RABBIT_ASLEEP   = ActionEvent.new 13
+    # see Response::CommandSend
+    SET_RABBIT_ASLEEP = ActionEvent.new 13
+
     #  Wake up your Rabbit
-    SET_RABBIT_AWAKE    = ActionEvent.new 14
+    # see Response::CommandSend
+    SET_RABBIT_AWAKE = ActionEvent.new 14
 
   end # module Action
+
 
 
   # TODO
@@ -125,7 +155,6 @@ module VioletAPI
     # base class used to handle Violet
     # server's responses
     class ServerRsp
-
       # String: response message element.
       attr_reader :message
       # String: response comment element.
@@ -180,49 +209,47 @@ module VioletAPI
 
 
     # Too much requests sent
-    class AbuseSending        < BadServerRsp; end
+    class AbuseSending < BadServerRsp; end
     # Wrong token or serial number 
     class NoGoodSerialOrToken < BadServerRsp; end
     # Wrong music id (either not in your personal MP3s list or not existing)
-    class MessageNotSend      < BadServerRsp; end
+    class MessageNotSend < BadServerRsp; end
     #  urlList parameter missing (api_stream)
     class NoCorrectParameters < BadServerRsp; end
     # The rabbit is not a Nabaztag/tag
-    class NotV2Rabbit         < BadServerRsp; end
+    class NotV2Rabbit < BadServerRsp; end
+    # Nabcast not posted because music id is not part of your personal MP3s or because the nabcast id does not belong to you or is not existing
+    class NabCastNotSend < BadServerRsp; end
+    # Message not sent
+    class MessageNotSend < BadServerRsp; end
+    # TTS creation problem or TTS not send
+    class TtsNotSend < BadServerRsp; end
+    # Choregraphy message not sent because the "chor" command was incorrect
+    class ChorNotSend < BadServerRsp; end
+    # Ears position not sent because the given position is incorrect
+    class EarPositionNotSend < BadServerRsp; end
+    # URL was not sent (api_stream)
+    class WebRadioNotSend < BadServerRsp; end
 
     # Nabcast posted
-    class NabCastSend         < GoodServerRsp; end
-    # Nabcast not posted because music id is not part of your personal MP3s or because the nabcast id does not belong to you or is not existing
-    class NabCastNotSend      < BadServerRsp; end
-
+    class NabCastSend < GoodServerRsp; end
+    # TODO
+    class CommandSend < GoodServerRsp; end
     # Message sent
-    class MessageSend         < GoodServerRsp; end
-    # Message not sent
-    class MessageNotSend      < BadServerRsp; end
-
-    # TTS creation problem or TTS not send
-    class TtsNotSend          < BadServerRsp; end
+    class MessageSend < GoodServerRsp; end
     # TTS message sent
-    class TtsSend             < GoodServerRsp; end
-
+    class TtsSend < GoodServerRsp; end
     # Choregraphy message sent
-    class ChorSend            < GoodServerRsp; end
-    # Choregraphy message not sent because the "chor" command was incorrect
-    class ChorNotSend         < BadServerRsp; end
-
+    class ChorSend < GoodServerRsp; end
     # Ears position sent
-    class EarPositionSend     < GoodServerRsp; end
-    # Ears position not sent because the given position is incorrect
-    class EarPositionNotSend  < BadServerRsp; end
-
+    class EarPositionSend < GoodServerRsp; end
     # URL was sent (api_stream)
-    class WebRadioSend        < GoodServerRsp; end
-    # URL was not sent (api_stream)
-    class WebRadioNotSend     < BadServerRsp; end
+    class WebRadioSend < GoodServerRsp; end
+    # Preview the TTS or music (with music id) without sending it
+    class LinkPreview < GoodServerRsp; end
 
     # Getting the ears position
-    class PositionEar         < GoodServerRsp
-
+    class PositionEar < GoodServerRsp
       # Fixnum: position of the left ear.
       attr_reader :leftposition
       # Fixnum: position of the left ear.
@@ -236,9 +263,57 @@ module VioletAPI
       end
     end
 
+    # Getting friends list
+    class FriendList < GoodServerRsp
+        # TODO
+    end
+
+    # TODO
+    class RecivedMsgList < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class NabaTimezone < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class NabaSignature < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class NabaBlacklist < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class RabbitSleep < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class RabbitVersion < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class TtsVoiceList < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class NabName < GoodServerRsp
+      # TODO
+    end
+
+    # TODO
+    class UserLangList < GoodServerRsp
+      # TODO
+    end
+
   end # module Response
-
-
 
 
 

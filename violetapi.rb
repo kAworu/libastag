@@ -3,96 +3,276 @@ module VioletAPI
 
   # the VioletAPI url.
   # see http://api.nabaztag.com/docs/home.html#sendevent
-  BASE_URL = 'http://api.nabaztag.com/vl/FR/api.jsp?'
+  URL = 'http://api.nabaztag.com/vl/FR/api.jsp?'
 
-  # abstract
-  # TODO
-  class Event
-    def initialize
-      raise NotImplementedError
-    end
-    def to_url
-      raise NotImplementedError
-    end
-  end
 
-  # combine many events
+
   # TODO
-  class EventNode
-  end
+  module Core
+
+    # abstract class.
+    # All class that send a message to Violet
+    # should inherit of #Event.
+    class Event
+      # constructor has to bee overrided.
+      def initialize
+        raise NotImplementedError
+      end
+
+      # #to_url has to bee overrided.
+      def to_url
+        raise NotImplementedError
+      end
+    end
+
+
+    # combine many #Event.
+    # #Event can be combined in a single
+    # request.
+    class EventNode < Event
+      include Enumerable
+
+      # chilldens.
+      attr_reader :events
+
+      # create a new #EventNode with
+      # +args+ childrens.
+      def initialize *args
+        @events = args end
+
+      # Add a +event+ to self.
+      def <<(event)
+        @events << event
+      end
+
+      # We have to define #EventNode#each to
+      # include #Enumerable.
+      def each
+        @events.each { |e| yield e }
+      end
+
+      # override #Event#to_url.
+      def to_url
+        self.collect { |e| e.to_url }.join
+      end
+    end
+
+  end # module Core
+
 
   # actions are used to retrieve informations about the
   # Nabaztag or the Nabaztag's owners.
   # see http://api.nabaztag.com/docs/home.html#getinfo
-  class Action < Event
-    
-    # create a new #Action with +id+.
-    def initialize id
-      @id = id
+  module Action
+
+    class ActionEvent < Core::Event
+      # create a new #Action with +id+
+      # see http://api.nabaztag.com/docs/home.html#getinfo
+      # for ids.
+      def initialize id
+        @id = id
+      end
+
+      # override #Event#to_url.
+      def to_url
+        "&action=#{@id}"
+      end
     end
 
-    def to_url
-      "&action=#{@id}"
-    end
-  end
 
-  # Preview the TTS or music (with music id) without sending it
-  GET_LINKPREVIEW     = Action.new  1
-  # Get a list of your friends
-  GET_FRIENDS_LIST    = Action.new  2
-  # Get a count and the list of the messages in your inbox
-  GET_INBOX_LIST      = Action.new  3
-  # Get the timezone in which your Nabaztag is set
-  GET_TIMEZONE        = Action.new  4
-  # Get the signature defined for the Nabaztag
-  GET_SIGNATURE       = Action.new  5
-  # Get a count and the list of people in your blacklist
-  GET_BLACKLISTED     = Action.new  6
-  # Get to know if the Nabaztag is sleeping (YES) or not (NO)
-  GET_RABBIT_STATUS   = Action.new  7
-  # Get to know if the Nabaztag is a Nabaztag (V1) or a Nabaztag/tag (V2)
-  GET_RABBIT_VERSION  = Action.new  8
-  # Get a list of all supported languages/voices for TTS (text to speach) engine
-  GET_LANG_VOICE      = Action.new  9
-  # Get the name of the Nabaztag
-  GET_RABBIT_NAME     = Action.new 10
-  # Get the languages selected for the Nabaztag
-  GET_SELECTED_LANG   = Action.new 11
-  # Get a preview of a message. This works only with the urlPlay parameter and URLs like broad/001/076/801/262.mp3
-  GET_MESSAGE_PREVIEW = Action.new 12
-  # Send your Rabbit to sleep
-  SET_RABBIT_ASLEEP   = Action.new 13
-  #  Wake up your Rabbit
-  SET_RABBIT_AWAKE    = Action.new 14
+    # Preview the TTS or music (with music id) without sending it
+    GET_LINKPREVIEW     = ActionEvent.new  1
+    # Get a list of your friends
+    GET_FRIENDS_LIST    = ActionEvent.new  2
+    # Get a count and the list of the messages in your inbox
+    GET_INBOX_LIST      = ActionEvent.new  3
+    # Get the timezone in which your Nabaztag is set
+    GET_TIMEZONE        = ActionEvent.new  4
+    # Get the signature defined for the Nabaztag
+    GET_SIGNATURE       = ActionEvent.new  5
+    # Get a count and the list of people in your blacklist
+    GET_BLACKLISTED     = ActionEvent.new  6
+    # Get to know if the Nabaztag is sleeping (YES) or not (NO)
+    GET_RABBIT_STATUS   = ActionEvent.new  7
+    # Get to know if the Nabaztag is a Nabaztag (V1) or a Nabaztag/tag (V2)
+    GET_RABBIT_VERSION  = ActionEvent.new  8
+    # Get a list of all supported languages/voices for TTS (text to speach) engine
+    GET_LANG_VOICE      = ActionEvent.new  9
+    # Get the name of the Nabaztag
+    GET_RABBIT_NAME     = ActionEvent.new 10
+    # Get the languages selected for the Nabaztag
+    GET_SELECTED_LANG   = ActionEvent.new 11
+    # Get a preview of a message. This works only with the urlPlay parameter and URLs like broad/001/076/801/262.mp3
+    GET_MESSAGE_PREVIEW = ActionEvent.new 12
+    # Send your Rabbit to sleep
+    SET_RABBIT_ASLEEP   = ActionEvent.new 13
+    #  Wake up your Rabbit
+    SET_RABBIT_AWAKE    = ActionEvent.new 14
+
+  end # module Action
+
+
+  # TODO
+  module Response
+
+    # a #ProtocolExcepion object is raised if server
+    # return a unhandled response.
+    # see http://api.nabaztag.com/docs/home.html#messages
+    class ProtocolExcepion < Exception; end
+
+
+    # abstract class.
+    # base class used to handle Violet
+    # server's responses
+    class ServerRsp
+
+      # String: response message element.
+      attr_reader :message
+      # String: response comment element.
+      attr_reader :comment
+
+      # create a new #ServerRsp. parse
+      # the given +xml+ to set +comment+ and
+      # +message+. must be overrided if self
+      # is not a simple server's response.
+      def initialize xml
+        require 'rexml/document'
+        begin
+          @xml = REXML::Document.new xml
+        rescue REXML::ParseException => e
+          raise ProtocolExcepion.new e.message
+        end
+        @message = @xml.elements['//message'].text
+        @comment = @xml.elements['//comment'].text
+      end
+
+      # return +true+ if the response is not an
+      # error, +false+ otherwhise.
+      def good?
+        raise NotImplementedError
+      end
+
+      # return +true+ if the response is an
+      # error, +false+ otherwhise.
+      def bad?
+        not self.good?
+      end
+    end
+
+
+    # handle Errors messages of Violet server.
+    # see http://api.nabaztag.com/docs/home.html#messages
+    class BadServerRsp < ServerRsp
+      # override #ServerRsp#good?
+      def good?
+        false
+      end
+    end
+
+
+    # handle server messages of Violet
+    class GoodServerRsp < ServerRsp
+      # override #ServerRsp#good?
+      def good?
+        true
+      end
+    end
+
+
+    # Too much requests sent
+    class AbuseSending        < BadServerRsp; end
+    # Wrong token or serial number 
+    class NoGoodSerialOrToken < BadServerRsp; end
+    # Wrong music id (either not in your personal MP3s list or not existing)
+    class MessageNotSend      < BadServerRsp; end
+    #  urlList parameter missing (api_stream)
+    class NoCorrectParameters < BadServerRsp; end
+    # The rabbit is not a Nabaztag/tag
+    class NotV2Rabbit         < BadServerRsp; end
+
+    # Nabcast posted
+    class NabCastSend         < GoodServerRsp; end
+    # Nabcast not posted because music id is not part of your personal MP3s or because the nabcast id does not belong to you or is not existing
+    class NabCastNotSend      < BadServerRsp; end
+
+    # Message sent
+    class MessageSend         < GoodServerRsp; end
+    # Message not sent
+    class MessageNotSend      < BadServerRsp; end
+
+    # TTS creation problem or TTS not send
+    class TtsNotSend          < BadServerRsp; end
+    # TTS message sent
+    class TtsSend             < GoodServerRsp; end
+
+    # Choregraphy message sent
+    class ChorSend            < GoodServerRsp; end
+    # Choregraphy message not sent because the "chor" command was incorrect
+    class ChorNotSend         < BadServerRsp; end
+
+    # Ears position sent
+    class EarPositionSend     < GoodServerRsp; end
+    # Ears position not sent because the given position is incorrect
+    class EarPositionNotSend  < BadServerRsp; end
+
+    # URL was sent (api_stream)
+    class WebRadioSend        < GoodServerRsp; end
+    # URL was not sent (api_stream)
+    class WebRadioNotSend     < BadServerRsp; end
+
+    # Getting the ears position
+    class PositionEar         < GoodServerRsp
+
+      # Fixnum: position of the left ear.
+      attr_reader :leftposition
+      # Fixnum: position of the left ear.
+      attr_reader :rightposition
+
+      # set +leftposition+ and +right
+      def initialize xml
+        super # to set @message and @xml
+        @leftposition   = @xml.elements['//leftposition' ].text.to_i
+        @rightposition  = @xml.elements['//rightposition'].text.to_i
+      end
+    end
+
+  end # module Response
+
+
+
 
 
   # this class is used to "translate" our #Events into URLs.
   # see http://api.nabaztag.com/docs/home.html
   class Query
 
-    # create a new Query with the give +command+, +serial+, and +token+.
+    # create a new Query with the give +event+, +serial+, and +token+.
     # +serial+ and +token+ parameters should be checked at a higher level.
-    def initialize(command, serial, token)
-      @command, @serial, @token = command, serial, token
+    def initialize(event, serial, token)
+      @event, @serial, @token = event, serial, token
     end
 
     def to_url
-      VioletAPI::BASE_URL + "&token=#{@token}" + "&sn=#{@serial}" + @event.to_url
+      Base::URL + "&token=#{@token}" + "&sn=#{@serial}" + @event.to_url
     end
   end
+
 
   def send! query
     require 'open-uri'
     response = open(query.to_url) { |r| r.read }
-    parse(response)
+    parse!(response)
   end
+
 
   private
-  def parse
-    # TODO
+
+  # Parse server's response (xml) to a query
+  # and return a #ServerResponse.
+  def parse!
   end
 
-end
+end # VioletAPI
 
 =begin
     DESC = {

@@ -19,13 +19,13 @@ module VioletAPI
   URL = 'http://api.nabaztag.com/vl/FR/api.jsp?'
 
 
-    ## Basic class
+    # Basic class
     # contains some basic stuff, abstract class
     # etc. they're used internaly and you should
     # only use derivated class.
     module Base
 
-      ## abstract class.
+      # abstract class.
       # All class that send a message to Violet
       # should inherit of this class.
       class Event
@@ -92,12 +92,19 @@ module VioletAPI
         @event, @serial, @token = event, serial, token
       end
 
-      # TODO
+      # return the complet url to GET 
       def to_url
         [ VioletAPI::Request::URL, "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
       end
     end
 
+
+    #
+    # actions list.
+    # #GET_EARS_POSITION has no +id+ because
+    # it's not an action in the Violet API.
+    # see http://api.nabaztag.com/docs/home.html#getinfo
+    #
 
     # actions are used to retrieve
     # informations about the Nabaztag
@@ -114,12 +121,6 @@ module VioletAPI
         "action=#{@id}"
       end
     end
-
-    #
-    # actions list.
-    # TODO: speack about GET_EARS_POSITION
-    # http://api.nabaztag.com/docs/home.html#getinfo
-    #
 
 
     # Preview the TTS or music (with music id)
@@ -186,7 +187,6 @@ module VioletAPI
     # more sens (to me).
     # see #Response::EarPositionSend and 
     # #Response::EarPositionNotSend
-    # TODO : write doc about that in module desc.
     GET_EARS_POSITION = Action.new nil
     def GET_EARS_POSITION.to_url
       'ears=ok'
@@ -214,7 +214,7 @@ module VioletAPI
     class ProtocolExcepion < Exception; end
 
 
-    ## Basic class
+    # Basic class
     # contains some basic stuff, abstract class
     # etc. they're used internaly and you should
     # only use derivated class.
@@ -251,7 +251,10 @@ module VioletAPI
           self.is_a? BadServerRsp
         end
 
-        # TODO
+        # We want to access to all xml elements easily, like the powerful Ruby On Rails find function.
+        # you can access to elements by typing their name (say that r is a ServerRsp) :
+        #   r.message   # => [ "NOTV2RABBIT" ]
+        #   r.comment   # => [ "V2 rabbit can use this action" ]
         def method_missing(name)
           if elements = REXML::Xpath.match(@xml, "/rsp/#{name}")
             elements.collect { |e| e.txt }
@@ -262,7 +265,7 @@ module VioletAPI
       end
 
 
-      ##  handle errors messages
+      # handle errors messages
       # All error message are 'simple' : they
       # only have a message and a comment element.
       # so class that inherit of this class have
@@ -271,7 +274,7 @@ module VioletAPI
       class BadServerRsp < ServerRsp; end
 
 
-      ## handle messages with infos.
+      # handle messages with infos.
       # good responses contains often infos (like
       # ear position etc) then class that inherit
       # of #GoodServerRsp often define initialize
@@ -321,10 +324,6 @@ module VioletAPI
 
     # Nabcast posted
     class NabCastSend < Base::GoodServerRsp; end
-    # Command has been send
-    # see Request::SET_RABBIT_ASLEEP and 
-    # Request::SET_RABBIT_AWAKE
-    class CommandSend < Base::GoodServerRsp; end
     # Message sent
     class MessageSend < Base::GoodServerRsp; end
     # TTS message sent
@@ -338,39 +337,32 @@ module VioletAPI
     # Preview the TTS or music (with music id)
     # without sending it
     class LinkPreview < Base::GoodServerRsp; end
-
     # Getting the ears position
     class PositionEar < Base::GoodServerRsp; end
-
     # Getting friends list
     class FriendList < Base::GoodServerRsp; end
-
-    # TODO
+    # a count and the list of the messages in your inbox
     class RecivedMsgList < Base::GoodServerRsp; end
-
-    # TODO
+    # the timezone in which your Nabaztag is set
     class NabaTimezone < Base::GoodServerRsp; end
-
-    # TODO
+    # the signature defined for the Nabaztag
     class NabaSignature < Base::GoodServerRsp; end
-
-    # TODO
+    # a count and the list of people in your blacklist
     class NabaBlacklist < Base::GoodServerRsp; end
-
-    # TODO
+    # to know if the Nabaztag is sleeping
     class RabbitSleep < Base::GoodServerRsp; end
-
-    # TODO
+    # to know if the Nabaztag is a Nabaztag (V1) or a Nabaztag/tag (V2)
     class RabbitVersion < Base::GoodServerRsp; end
-
-    # TODO
+    # a list of all supported languages/voices for TTS (text to speach) engine
     class TtsVoiceList < Base::GoodServerRsp; end
-
-    # TODO
+    # the name of the Nabaztag
     class NabName < Base::GoodServerRsp; end
-
-    # TODO
+    # Get the languages selected for the Nabaztag
     class UserLangList < Base::GoodServerRsp; end
+    # Command has been send
+    # see Request::SET_RABBIT_ASLEEP and 
+    # Request::SET_RABBIT_AWAKE
+    class CommandSend < Base::GoodServerRsp; end
 
   end # module Response
 

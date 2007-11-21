@@ -20,7 +20,9 @@ module VioletAPI
 
 
     ## Basic class
-    # TODO
+    # contains some basic stuff, abstract class
+    # etc. they're used internaly and you should
+    # only use derivated class.
     module Base
 
       ## abstract class.
@@ -32,6 +34,10 @@ module VioletAPI
           raise NotImplementedError
         end
 
+        # TODO
+        def + other
+          EventCollection.new self, other
+        end
         # to_url has to be overrided
         def to_url
           raise NotImplementedError
@@ -43,29 +49,31 @@ module VioletAPI
       class EventCollection < Event
         include Enumerable
 
-        # Array of #Event
-        attr_reader :events
-
-        # create a new EventCollection with +args+
-        # childrens.
-        def initialize *args
-          @events = args
+        # create a new EventCollection with
+        # two childrens.
+        def initialize one, another
+          if one.respond_to?(:to_url) and another.respond_to?(:to_url) # Coin Coin ! >°_/
+            @childrens = [ one, another ]
+          else
+            raise ArgumentError.new, "bad parameters"
+          end
         end
 
-        # Add a #Event to self.
-        def <<(event)
-          @events << event
-        end
-
-        # We have to define each # to include
+        # We have to define each to include
         # #Enumerable module.
         def each
-          @events.each { |e| yield e }
+          @childrens.each do |e|
+            if e.kind_of? Enumerable
+              e.each { |i| yield i }
+            else
+              yield e
+            end
+          end
         end
 
         # override #Event#to_url.
         def to_url
-          self.collect { |e| e.to_url }.join
+          @childrens.collect { |e| e.to_url }.join('&')
         end
       end
 
@@ -86,7 +94,7 @@ module VioletAPI
 
       # TODO
       def to_url
-        Base::URL + "&token=#{@token}" + "&sn=#{@serial}" + @event.to_url
+        [ VioletAPI::Request::URL, "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
       end
     end
 
@@ -96,18 +104,22 @@ module VioletAPI
     # or the Nabaztag's owners. see
     # http://api.nabaztag.com/docs/home.html#getinfo
     class Action < Base::Event
-      # create a new #Action with +id+ see
-      # http://api.nabaztag.com/docs/home.html#getinfo
-      # for ids.
+      # create a new #Action with +id+
       def initialize id
         @id = id
       end
 
       # override #Event#to_url.
       def to_url
-        "&action=#{@id}"
+        "action=#{@id}"
       end
     end
+
+    #
+    # actions list.
+    # TODO: speack about GET_EARS_POSITION
+    # http://api.nabaztag.com/docs/home.html#getinfo
+    #
 
 
     # Preview the TTS or music (with music id)
@@ -168,16 +180,26 @@ module VioletAPI
     # see #Response::LinkPreview
     GET_MESSAGE_PREVIEW = Action.new 12
 
+    # Get the position of the ears to your Nabaztag.
+    # this request is not an action in the Violet
+    # API but we do as if it was because it's make
+    # more sens (to me).
+    # see #Response::EarPositionSend and 
+    # #Response::EarPositionNotSend
+    # TODO : write doc about that in module desc.
+    GET_EARS_POSITION = Action.new nil
+    def GET_EARS_POSITION.to_url
+      'ears=ok'
+    end
+
     # Send your Rabbit to sleep
     # see #Response::CommandSend
     SET_RABBIT_ASLEEP = Action.new 13
 
-    #  Wake up your Rabbit
+    # Wake up your Rabbit
     # see #Response::CommandSend
     SET_RABBIT_AWAKE = Action.new 14
 
-    # TODO: ears=ok should be implement as
-    #       an action.
 
   end # module Request
 
@@ -192,7 +214,10 @@ module VioletAPI
     class ProtocolExcepion < Exception; end
 
 
-    # TODO
+    ## Basic class
+    # contains some basic stuff, abstract class
+    # etc. they're used internaly and you should
+    # only use derivated class.
     module Base
 
       ## abstract class.
@@ -215,24 +240,22 @@ module VioletAPI
           begin
             @xml = REXML::Document.new xml
           rescue REXML::ParseException => e
-            raise ProtocolExcepion.new e.message
+            raise ProtocolExcepion.new(e.message)
           end
           @message = @xml.elements['//message'].text
           @comment = @xml.elements['//comment'].text
         end
 
         # return +true+ if the response is not an
-        # error, +false+ otherwhise. All class that
-        # inherit of this class should override
-        # this function.
+        # error, +false+ otherwhise.
         def good?
-          raise NotImplementedError
+          self.is_a? GoodServerRsp
         end
 
         # return +true+ if the response is an
         # error, +false+ otherwhise.
         def bad?
-          not self.good?
+          self.is_a? BadServerRsp
         end
       end
 
@@ -243,12 +266,7 @@ module VioletAPI
       # so class that inherit of this class have
       # usualy no code.
       # see http://api.nabaztag.com/docs/home.html#messages
-      class BadServerRsp < ServerRsp
-        # override #ServerRsp#good?
-        def good?
-          false
-        end
-      end
+      class BadServerRsp < ServerRsp; end
 
 
       ## handle messages with infos.
@@ -256,15 +274,14 @@ module VioletAPI
       # ear position etc) then class that inherit
       # of #GoodServerRsp often define initialize
       # to parse xml and add instances variables.
-      class GoodServerRsp < ServerRsp
-        # override #ServerRsp#good?
-        def good?
-          true
-        end
-      end
+      class GoodServerRsp < ServerRsp; end
 
     end # module Response::Base
 
+
+    #
+    # Errors messages from server
+    #
 
     # Too much requests sent
     class AbuseSending < Base::BadServerRsp; end
@@ -295,9 +312,16 @@ module VioletAPI
     # URL was not sent (api_stream)
     class WebRadioNotSend < Base::BadServerRsp; end
 
+
+    #
+    # Infos messages from server
+    #
+
     # Nabcast posted
     class NabCastSend < Base::GoodServerRsp; end
-    # TODO
+    # Command has been send
+    # see Request::SET_RABBIT_ASLEEP and 
+    # Request::SET_RABBIT_AWAKE
     class CommandSend < Base::GoodServerRsp; end
     # Message sent
     class MessageSend < Base::GoodServerRsp; end

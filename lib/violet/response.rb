@@ -43,19 +43,42 @@ module Response
         self.is_a? BadServerRsp
       end
 
-      # We want to access to all xml elements easily, like the powerful Ruby On Rails find function.
+      # We want to access to all xml elements
+      # easily, like the powerful Ruby On Rails
+      # find function.
+      # Note that if a class that inherit of this
+      # one, define a method (let's say message()),
+      # you'll not be able anymore to access a
+      # message elements +xml+ (method_missing is
+      # not called in this case!).
+      #
       # you can access to elements by typing their name (say that r is a ServerRsp) :
-      #   r.message   # => [ "NOTV2RABBIT" ]
-      #   r.comment   # => [ "V2 rabbit can use this action" ]
+      #   r.has_message?    # => true
+      #   r.message         # => [ "NOTV2RABBIT" ]
+      #   r.comment         # => [ "V2 rabbit can use this action" ]
+      #
       #   TODO: handle messages like action=11
-      def method_missing(name)
-        ename = "/rsp/#{name}"
+      def method_missing name
+        name = name.to_s
+        root = @xml.root
 
-        if @xml.elements[ename]
-          REXML::XPath.match(@xml, ename).collect { |e| e.text }
+        if name =~ /has_(.+)?/
+          not root.elements[$1].nil?
         else
-          raise NameError.new("undefined local variable or method #{name} for #{self.inspect}") if result.empty?
+          if root.elements[name]
+            _lookup name
+          else
+            raise NameError.new("undefined local variable or method #{name} for #{self.inspect}")
+          end
         end
+      end
+
+      private
+
+      # search for <name>plop</name> in +xml+
+      # and return plop
+      def _lookup name
+        REXML::XPath.match(@xml.root, name).collect { |e| e.text }
       end
     end
 
@@ -149,7 +172,7 @@ module Response
   # a list of all supported languages/voices for TTS (text to speach) engine
   class TtsVoiceList < Base::GoodServerRsp; end
   # the name of the Nabaztag
-  class NabName < Base::GoodServerRsp; end
+  class RabbitName < Base::GoodServerRsp; end
   # Get the languages selected for the Nabaztag
   class UserLangList < Base::GoodServerRsp; end
   # Command has been send
@@ -160,8 +183,36 @@ module Response
 
   # parse given xml and return a new ServerRsp
   # from the corresponding class.
-  def parse xml
-    # TODO
+  # Violet messages aren't easy to identify,
+  # because there is not id to responses. Then we
+  # have to do tricky things to handle them.
+  # XXX: performances ?
+  def Response.parse raw
+    tmp = Base::ServerRsp.new raw # ouch ! we shouldn't create ServerRsp instances.
+    klass =
+    if tmp.has_message? # try to handle simple responses
+      klassname = tmp.message.first
+      eval Response.constants.grep(/#{klassname}/i).first rescue nil # FIXME: it might exist a better way to do that :)
+
+        # TODO: study more.
+    elsif   tmp.has_listfriend?         then FriendList
+    elsif   tmp.has_listreceivedmsg?    then RecivedMsgList
+    elsif   tmp.has_timezone?           then NabaTimezone
+    elsif   tmp.has_signature?          then NabaSignature
+    elsif   tmp.has_blacklist?          then NabaBlacklist
+    elsif   tmp.has_rabbitSleep?        then RabbitSleep
+    elsif   tmp.has_rabbitVersion?      then RabbitVersion
+    elsif   tmp.has_voiceListTTS?       then TtsVoiceList
+    elsif   tmp.has_rabbitName?         then RabbitName
+    elsif   tmp.has_langListUser?       then UserLangList
+    else                                nil
+    end
+
+    if klass.nil?
+      raise ProtocolExcepion.new("unhandled server's response : #{raw}")
+    else
+      klass.new raw
+    end
   end
 
 

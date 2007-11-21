@@ -47,10 +47,15 @@ module Response
       # you can access to elements by typing their name (say that r is a ServerRsp) :
       #   r.message   # => [ "NOTV2RABBIT" ]
       #   r.comment   # => [ "V2 rabbit can use this action" ]
+      #   TODO: handle messages like action=11
       def method_missing(name)
-        result = REXML::XPath.match(@xml, "/rsp/#{name}").collect { |e| e.text }
-        raise NameError.new("undefined local variable or method #{name} for #{self.inspect}") if result.empty?
-        result
+        ename = "/rsp/#{name}"
+
+        if @xml.elements[ename]
+          REXML::XPath.match(@xml, ename).collect { |e| e.text }
+        else
+          raise NameError.new("undefined local variable or method #{name} for #{self.inspect}") if result.empty?
+        end
       end
     end
 
@@ -106,6 +111,8 @@ module Response
 
   #
   # Infos messages from server
+  #
+  # TODO: complete doc (Request reference)
   #
 
   # Nabcast posted

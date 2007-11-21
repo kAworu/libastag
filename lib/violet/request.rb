@@ -1,3 +1,6 @@
+# violet/request.rb
+#
+#
 # contains events to send to the server.  #Action
 # instances are constants, because they're always
 # the same request, but other #Event derivated

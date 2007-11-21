@@ -1,5 +1,6 @@
 # violet/response.rb
-
+#
+#
 # TODO
 module Response
 
@@ -21,11 +22,7 @@ module Response
     # responses
     class ServerRsp
       # create a new ServerRsp.
-      # parse the given +xml+ to set +comment+
-      # and +message+.  must be overrided if
-      # self is not a simple server's response.
-      # 'simple' mean with only +message+ and
-      # +comment+ elements in XML response
+      # try parse the given raw xml argument.
       def initialize raw
         begin
           @xml = REXML::Document.new raw
@@ -51,11 +48,9 @@ module Response
       #   r.message   # => [ "NOTV2RABBIT" ]
       #   r.comment   # => [ "V2 rabbit can use this action" ]
       def method_missing(name)
-        if elements = REXML::Xpath.match(@xml, "/rsp/#{name}")
-          elements.collect { |e| e.txt }
-        else
-          raise NameError.new "undefined local variable or method #{name} for #{self.inspect}"
-        end
+        result = REXML::XPath.match(@xml, "/rsp/#{name}").collect { |e| e.text }
+        raise NameError.new("undefined local variable or method #{name} for #{self.inspect}") if result.empty?
+        result
       end
     end
 
@@ -63,20 +58,17 @@ module Response
     # handle errors messages
     # All error message are 'simple' : they
     # only have a message and a comment element.
-    # so class that inherit of this class have
-    # usualy no code.
     # see http://api.nabaztag.com/docs/home.html#messages
     class BadServerRsp < ServerRsp; end
 
 
     # handle messages with infos.
     # good responses contains often infos (like
-    # ear position etc) then class that inherit
-    # of #GoodServerRsp often define initialize
-    # to parse xml and add instances variables.
+    # ear position etc).
     class GoodServerRsp < ServerRsp; end
 
   end # module Response::Base
+
 
 
   #
@@ -111,7 +103,6 @@ module Response
   class EarPositionNotSend < Base::BadServerRsp; end
   # URL was not sent (api_stream)
   class WebRadioNotSend < Base::BadServerRsp; end
-
 
   #
   # Infos messages from server
@@ -158,6 +149,13 @@ module Response
   # see Request::SET_RABBIT_ASLEEP and 
   # Request::SET_RABBIT_AWAKE
   class CommandSend < Base::GoodServerRsp; end
+
+
+  # parse given xml and return a new ServerRsp
+  # from the corresponding class.
+  def parse xml
+    # TODO
+  end
 
 
 end # module Response

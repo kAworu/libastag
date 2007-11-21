@@ -3,6 +3,7 @@
 #
 # TODO
 module Response
+  require "helpers.rb"
 
   # ProtocolExcepion are raised if server
   # return a unknown response.
@@ -43,43 +44,52 @@ module Response
         self.is_a? BadServerRsp
       end
 
+      # TODO
+      def get_all element
+        @xml.root.elements.collect(element) do |e|
+          if block_given?
+            yield(e)
+          else
+            e
+          end
+        end
+      end
+
       # We want to access to all xml elements
       # easily, like the powerful Ruby On Rails
       # find function.
       # Note that if a class that inherit of this
       # one, define a method (let's say message()),
-      # you'll not be able anymore to access a
-      # message elements +xml+ (method_missing is
-      # not called in this case!).
+      # you'll not be able anymore to access to
+      # message element (method_missing is not
+      # called in this case!). In this particular
+      # case you can call #ServerRsp#__xmlement__
+      # (in fact, that's why __xmlement__ is a 
+      # public method.
       #
       # you can access to elements by typing their name (say that r is a ServerRsp) :
       #   r.has_message?    # => true
       #   r.message         # => [ "NOTV2RABBIT" ]
       #   r.comment         # => [ "V2 rabbit can use this action" ]
       #
-      #   TODO: handle messages like action=11
+      #   TODO: rewritte it
       def method_missing name
         name = name.to_s
+
+        t.elements.collect
         root = @xml.root
 
         if name =~ /has_(.+)?/
           not root.elements[$1].nil?
         else
           if root.elements[name]
-            _lookup name
+            get_all(name)
           else
             raise NameError.new("undefined local variable or method #{name} for #{self.inspect}")
           end
         end
       end
 
-      private
-
-      # search for <name>plop</name> in +xml+
-      # and return plop
-      def _lookup name
-        REXML::XPath.match(@xml.root, name).collect { |e| e.text }
-      end
     end
 
 
@@ -188,13 +198,13 @@ module Response
   # have to do tricky things to handle them.
   # XXX: performances ?
   def Response.parse raw
-    tmp = Base::ServerRsp.new raw # ouch ! we shouldn't create ServerRsp instances.
+    tmp = Base::ServerRsp.new raw # ouch ! we shouldn't create ServerRsp instances, but act as if you didn't see ;)
     klass =
     if tmp.has_message? # try to handle simple responses
-      klassname = tmp.message.first
-      eval Response.constants.grep(/#{klassname}/i).first rescue nil # FIXME: it might exist a better way to do that :)
+      klassname = Response.constants.grep(/#{tmp.message.first}/i).first    rescue nil
+      Helpers.constantize "#{self}::#{klassname}"                           rescue nil
 
-        # TODO: study more.
+    # TODO: study more.
     elsif   tmp.has_listfriend?         then FriendList
     elsif   tmp.has_listreceivedmsg?    then RecivedMsgList
     elsif   tmp.has_timezone?           then NabaTimezone
@@ -214,7 +224,6 @@ module Response
       klass.new raw
     end
   end
-
 
 end # module Response
 

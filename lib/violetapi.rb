@@ -219,31 +219,24 @@ module VioletAPI
     # etc. they're used internaly and you should
     # only use derivated class.
     module Base
+      require 'rexml/document'
 
-      ## abstract class.
+      # abstract class.
       # base class used to handle Violet server's
       # responses
       class ServerRsp
-        # String: response message element.
-        attr_reader :message
-        # String: response comment element.
-        attr_reader :comment
-
         # create a new ServerRsp.
         # parse the given +xml+ to set +comment+
         # and +message+.  must be overrided if
         # self is not a simple server's response.
         # 'simple' mean with only +message+ and
         # +comment+ elements in XML response
-        def initialize xml
-          require 'rexml/document'
+        def initialize raw
           begin
-            @xml = REXML::Document.new xml
+            @xml = REXML::Document.new raw
           rescue REXML::ParseException => e
             raise ProtocolExcepion.new(e.message)
           end
-          @message = @xml.elements['//message'].text
-          @comment = @xml.elements['//comment'].text
         end
 
         # return +true+ if the response is not an
@@ -256,6 +249,15 @@ module VioletAPI
         # error, +false+ otherwhise.
         def bad?
           self.is_a? BadServerRsp
+        end
+
+        # TODO
+        def method_missing(name)
+          if elements = REXML::Xpath.match(@xml, "/rsp/#{name}")
+            elements.collect { |e| e.txt }
+          else
+            raise NameError.new "undefined local variable or method #{name} for #{self.inspect}"
+          end
         end
       end
 
@@ -338,69 +340,37 @@ module VioletAPI
     class LinkPreview < Base::GoodServerRsp; end
 
     # Getting the ears position
-    class PositionEar < Base::GoodServerRsp
-      # Fixnum: position of the left ear.
-      attr_reader :leftposition
-      # Fixnum: position of the left ear.
-      attr_reader :rightposition
-
-      # set +leftposition+ and +right
-      def initialize xml
-        super # to set @message and @xml
-        @leftposition   = @xml.elements['//leftposition' ].text.to_i
-        @rightposition  = @xml.elements['//rightposition'].text.to_i
-      end
-    end
+    class PositionEar < Base::GoodServerRsp; end
 
     # Getting friends list
-    class FriendList < Base::GoodServerRsp
-        # TODO
-    end
+    class FriendList < Base::GoodServerRsp; end
 
     # TODO
-    class RecivedMsgList < Base::GoodServerRsp
-      # TODO
-    end
+    class RecivedMsgList < Base::GoodServerRsp; end
 
     # TODO
-    class NabaTimezone < Base::GoodServerRsp
-      # TODO
-    end
+    class NabaTimezone < Base::GoodServerRsp; end
 
     # TODO
-    class NabaSignature < Base::GoodServerRsp
-      # TODO
-    end
+    class NabaSignature < Base::GoodServerRsp; end
 
     # TODO
-    class NabaBlacklist < Base::GoodServerRsp
-      # TODO
-    end
+    class NabaBlacklist < Base::GoodServerRsp; end
 
     # TODO
-    class RabbitSleep < Base::GoodServerRsp
-      # TODO
-    end
+    class RabbitSleep < Base::GoodServerRsp; end
 
     # TODO
-    class RabbitVersion < Base::GoodServerRsp
-      # TODO
-    end
+    class RabbitVersion < Base::GoodServerRsp; end
 
     # TODO
-    class TtsVoiceList < Base::GoodServerRsp
-      # TODO
-    end
+    class TtsVoiceList < Base::GoodServerRsp; end
 
     # TODO
-    class NabName < Base::GoodServerRsp
-      # TODO
-    end
+    class NabName < Base::GoodServerRsp; end
 
     # TODO
-    class UserLangList < Base::GoodServerRsp
-      # TODO
-    end
+    class UserLangList < Base::GoodServerRsp; end
 
   end # module Response
 

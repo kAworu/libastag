@@ -67,22 +67,37 @@ module Response
       # message element (method_missing is not
       # called in this case!). You will have to
       # call #get_all by hand in this case.
-      #
-      # you can access to elements by typing their name (say that r is a ServerRsp) :
-      #   r.has_message?    # => true
-      #   r.message         # => [ "NOTV2RABBIT" ]
-      #   r.comment         # => [ "V2 rabbit can use this action" ]
-      #
+      # Examples :
+      #     >> rsp = Response.parse('<?xml version="1.0" encoding="UTF-8"?><rsp><blacklist nb="2"/><pseudo name="toto"/><pseudo name="titi"/></rsp>')
+      #     => #<Response::Blacklist:0x2acd8c08f2f8 @xml=<UNDEFINED> ... </>>
+      #     >> rsp.blacklist
+      #     => {"nb"=>"2"}
+      #     >> rsp.pseudo
+      #     => {"name"=>"toto"}
+      #     >> rsp.pseudos
+      #     => [{"name"=>"toto"}, {"name"=>"titi"}]
       def method_missing name
-        name = name.to_s
-        if name =~ /has_(.+)?/ # it's a 
-          not get_all($1).empty?
-        else
-          matches = get_all(name)
-          raise NameError.new("undefined local variable or method #{name} for #{self.inspect}") if matches.empty?
-          matches.collect do |e|
-              e.text || e.attributes.to_hash
+        # our method to transforme
+        # #REXML::Element into text or hash
+        filter = Proc.new do |e|
+          e.text || e.attributes.to_hash
+        end
+        # raise an error when there are no
+        # results and method_missing is not
+        # a question
+        check = Proc.new do |ary|
+          if ary.empty?
+            raise NameError.new("undefined local variable or method #{$1} for #{self.inspect}")
+          else
+            ary
           end
+        end
+        # main case statment
+        case name.to_s
+        when /^has_(.+)\?$/         then get_all($1).size > 0
+        when /^has_many_(.+)s\?$/   then get_all($1).size > 1
+        when /(.*)s$/               then check.call( get_all($1).collect(&filter) )
+        when /(.*)/                 then check.call( get_all($1).collect(&filter) ).first
         end
       end
 
@@ -162,25 +177,25 @@ module Response
   # Getting the ears position
   class PositionEar < Base::GoodServerRsp; end
   # Getting friends list
-  class FriendList < Base::GoodServerRsp; end
+  class ListFriend < Base::GoodServerRsp; end
   # a count and the list of the messages in your inbox
-  class RecivedMsgList < Base::GoodServerRsp; end
+  class ListReceivedMsg < Base::GoodServerRsp; end
   # the timezone in which your Nabaztag is set
-  class NabaTimezone < Base::GoodServerRsp; end
+  class Timezone < Base::GoodServerRsp; end
   # the signature defined for the Nabaztag
-  class NabaSignature < Base::GoodServerRsp; end
+  class Signature < Base::GoodServerRsp; end
   # a count and the list of people in your blacklist
-  class NabaBlacklist < Base::GoodServerRsp; end
+  class Blacklist < Base::GoodServerRsp; end
   # to know if the Nabaztag is sleeping
   class RabbitSleep < Base::GoodServerRsp; end
   # to know if the Nabaztag is a Nabaztag (V1) or a Nabaztag/tag (V2)
   class RabbitVersion < Base::GoodServerRsp; end
   # a list of all supported languages/voices for TTS (text to speach) engine
-  class TtsVoiceList < Base::GoodServerRsp; end
+  class VoiceListTts < Base::GoodServerRsp; end
   # the name of the Nabaztag
   class RabbitName < Base::GoodServerRsp; end
   # Get the languages selected for the Nabaztag
-  class UserLangList < Base::GoodServerRsp; end
+  class LangListUser < Base::GoodServerRsp; end
   # Command has been send
   # see Request::SET_RABBIT_ASLEEP and 
   # Request::SET_RABBIT_AWAKE
@@ -190,26 +205,26 @@ module Response
   # parse given xml and return a new ServerRsp
   # from the corresponding class.
   # Violet messages aren't easy to identify,
-  # because there is not id to responses. Then we
-  # have to do tricky things to handle them.
+  # because there is not id to responses.
+  # so if there is an message element, it's a
+  # simple response, otherwise we use the first
+  # element's name.
   def Response.parse raw
-    tmp = Base::ServerRsp.new raw # ouch ! we shouldn't create ServerRsp instances, but act as if you didn't see ;)
+    tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
     klass =
     if tmp.has_message? # try to handle simple responses
       klassname = Response.constants.grep(/#{tmp.message.first}/i).first    rescue nil
       Helpers.constantize "#{self}::#{klassname}"                           rescue nil
-
-    # TODO: abuse of get_all or method_missing, rename class !
-    elsif   tmp.has_listfriend?         then FriendList
-    elsif   tmp.has_listreceivedmsg?    then RecivedMsgList
-    elsif   tmp.has_timezone?           then NabaTimezone
-    elsif   tmp.has_signature?          then NabaSignature
-    elsif   tmp.has_blacklist?          then NabaBlacklist
+    elsif   tmp.has_listfriend?         then ListFriend
+    elsif   tmp.has_listreceivedmsg?    then ListReceivedMsg
+    elsif   tmp.has_timezone?           then Timezone
+    elsif   tmp.has_signature?          then Signature
+    elsif   tmp.has_blacklist?          then Blacklist
     elsif   tmp.has_rabbitSleep?        then RabbitSleep
     elsif   tmp.has_rabbitVersion?      then RabbitVersion
-    elsif   tmp.has_voiceListTTS?       then TtsVoiceList
+    elsif   tmp.has_voiceListTTS?       then VoiceListTts
     elsif   tmp.has_rabbitName?         then RabbitName
-    elsif   tmp.has_langListUser?       then UserLangList
+    elsif   tmp.has_langListUser?       then LangListUser
     else                                nil
     end
 

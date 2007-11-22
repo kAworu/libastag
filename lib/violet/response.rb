@@ -11,10 +11,9 @@ module Response
   class ProtocolExcepion < Exception; end
 
 
-  # Basic class
   # contains some basic stuff, abstract class
   # etc. they're used internaly and you should
-  # only use derivated class.
+  # not access this module.
   module Base
     require 'rexml/document'
 
@@ -48,15 +47,14 @@ module Response
         self.is_a? BadServerRsp
       end
 
-      # TODO
-      def get_all element
+      # get all xml element that match
+      # name. You can give a block that take a
+      # #REXML::Element in parameter.
+      def get_all name
+        name = name.to_s
         # REXML::XPath.match(@xml, element).collect do |e|  <= this one is for a recursive search.
-        @xml.root.elements.collect(element) do |e|
-          if block_given?
-            yield e
-          else
-            e
-          end
+        @xml.root.elements.collect(name) do |e|
+          if block_given? then yield(e) else e end
         end
       end
 
@@ -82,7 +80,9 @@ module Response
         else
           matches = get_all(name)
           raise NameError.new("undefined local variable or method #{name} for #{self.inspect}") if matches.empty?
-          matches.collect { |e| e.text || e.attributes }
+          matches.collect do |e|
+              e.text || e.attributes.to_hash
+          end
         end
       end
 
@@ -90,7 +90,7 @@ module Response
 
 
     # handle errors messages
-    # All error message are 'simple' : they
+    # All error message are 'simple': they
     # only have a message and a comment element.
     # see http://api.nabaztag.com/docs/home.html#messages
     class BadServerRsp < ServerRsp; end

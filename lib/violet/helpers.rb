@@ -3,6 +3,22 @@
 #
 # TODO
 module Helpers
+  require "rexml/document"
+
+  # TODO
+  class REXML::Attributes
+    if defined? to_hash
+      alias :to_hash_old :to_hash
+    end
+
+    def to_hash
+      h = Hash.new
+      self.each do |key,value|
+        h[key] = value
+      end
+      h
+    end
+  end
 
 
   # taken from active_support/inflector.rb,

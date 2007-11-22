@@ -3,13 +3,13 @@
 
 
 this module handle servers messages.
-you should only use #Response.parse with the server's message (xml) as argument, it returns a #ServerRsp instance
-from the corresponding class (see all the #ServerRsp subclass).  with a ServerRsp instance you can use :
+you should only use Response.parse with the server's message (xml) as argument, it returns a ServerRsp instance
+from the corresponding class (see all the ServerRsp subclass).  with a ServerRsp instance you can use :
 
 * r.has_x?        => return +true+ if r has at least one element of name "x", return +false+ otherwhise.
 * r.has_many_xs?  => return +true+ if r has more than one element of name "x", return +false+ otherwhise.
 * r.x             => find the first xml element of name x and return it's text if any, or a hash of it's options
-* r.xs            => find all xml element of name x and return an #Array of their text if any, or their options.
+* r.xs            => find all xml element of name x and return an Array of their text if any, or their options.
 * r.good?         => return +true+ if the response is not an error, +false+ otherwhise.
 * r.bad?          => return +true+ if the response is an error, +false+ otherwhise.
 
@@ -33,7 +33,7 @@ from the corresponding class (see all the #ServerRsp subclass).  with a ServerRs
     >> rsp.pseudos
     => [{"name"=>"toto"}, {"name"=>"titi"}]
 
-if you want to access to the #REXML::Document object of a #ServerRsp you can either use rsp.xml or use
+if you want to access to the REXML::Document object of a ServerRsp you can either use rsp.xml or use
 #ServerRsp.get_all method.  you may don't need to use them and only access elements as seen before.
 
 =end
@@ -53,7 +53,7 @@ module Response
     # abstract class.
     # base class used to handle Violet server's responses.
     class ServerRsp
-      # It's possible to access the #REXML::Document object if needed, but we return a copy to avoid modification
+      # It's possible to access the REXML::Document object if needed, but we return a copy to avoid modification
       # of this object.
       def xml
         @xml.clone
@@ -78,7 +78,7 @@ module Response
         self.is_a? BadServerRsp
       end
 
-      # get all xml element that match name. You can give a block that take a #REXML::Element in parameter.
+      # get all xml element that match name. You can give a block that take a REXML::Element in parameter.
       def get_all name
         name = name.to_s
         # REXML::XPath.match(@xml, element).collect do |e|  <= this one is for a recursive search.
@@ -87,12 +87,12 @@ module Response
         end
       end
 
-      # We want to access to all xml elements easily, like the powerful Ruby On Rails find function.  Note that
+      # We want to access to all xml elements easily, like the powerful ActiveRecord 'find' function.  Note that
       # if a class that inherit of this one, define a method (let's say message()), you'll not be able anymore to
       # access to message element by rsp.message (method_missing is not called in this case!). You will have to call
-      # #get_all by hand in this case.
+      # get_all by hand in this case.
       def method_missing name
-        # this method to transforme #REXML::Element into text or hash
+        # this method to transforme REXML::Element into text or hash
         filter = Proc.new do |e|
           e.text || e.attributes.to_hash
         end
@@ -159,7 +159,8 @@ module Response
   #
   # Infos messages from server
   #
-  # TODO: complete doc (Request reference)
+  # TODO: complete doc =>
+  # request references, examples, attributes of objects.
   #
 
   # Nabcast posted

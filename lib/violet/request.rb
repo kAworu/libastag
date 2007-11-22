@@ -1,15 +1,18 @@
-# violet/request.rb
-#
-#
-# contains events to send to the server.  #Action
-# instances are constants, because they're always
-# the same request, but other #Event derivated
-# class are used to create objects.
+=begin rdoc
+==violet/request.rb
+
+
+contains events to send to the server.  Action
+instances are constants, because they're always
+the same request, but other Event derivated
+class are used to create objects.
+=end
+
 module Request
 
   # the VioletAPI url where we send request.
   # see http://api.nabaztag.com/docs/home.html#sendevent
-  URL = 'http://api.nabaztag.com/vl/FR/api.jsp?'
+  API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp?'
 
 
 
@@ -39,7 +42,7 @@ module Request
     end
 
 
-    # combine many #Event in a single request
+    # combine many Event in a single request
     class EventCollection < Event
       include Enumerable
 
@@ -54,7 +57,7 @@ module Request
       end
 
       # We have to define each to include
-      # #Enumerable module.
+      # Enumerable module.
       def each
         @childrens.each do |e|
           if e.kind_of? Enumerable
@@ -65,7 +68,7 @@ module Request
         end
       end
 
-      # override #Event#to_url.
+      # override Event#to_url.
       def to_url
         @childrens.collect { |e| e.to_url }.join('&')
       end
@@ -75,7 +78,7 @@ module Request
 
 
 
-  # this class is used to "translate" our #Events
+  # this class is used to "translate" our Events
   # into URLs.
   # see http://api.nabaztag.com/docs/home.html
   class Query
@@ -89,7 +92,7 @@ module Request
 
     # return the complet url to GET 
     def to_url
-      [ VioletAPI::Request::URL, "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
+      [ API_URL, "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
     end
   end
 
@@ -97,7 +100,7 @@ module Request
 
   #
   # actions list.
-  # #GET_EARS_POSITION has no +id+ because
+  # GET_EARS_POSITION has no +id+ because
   # it's not an action in the Violet API.
   # see http://api.nabaztag.com/docs/home.html#getinfo
   #
@@ -107,12 +110,12 @@ module Request
   # or the Nabaztag's owners. see
   # http://api.nabaztag.com/docs/home.html#getinfo
   class Action < Base::Event
-    # create a new #Action with +id+
+    # create a new Action with +id+
     def initialize id
       @id = id
     end
 
-    # override #Event#to_url.
+    # override Event#to_url.
     def to_url
         "action=#{@id}"
     end
@@ -121,79 +124,79 @@ module Request
 
   # Preview the TTS or music (with music id)
   # without sending it
-  # see #Response::LinkPreview
+  # see Response::LinkPreview
   GET_LINKPREVIEW = Action.new 1
 
   # Get a list of your friends
-  # see #Response::FriendList
+  # see Response::FriendList
   GET_FRIENDS_LIST = Action.new 2
 
   # Get a count and the list of the messages
   # in your inbox
-  # see #Response::RecivedMsgList
+  # see Response::RecivedMsgList
   GET_INBOX_LIST = Action.new 3
 
   # Get the timezone in which your Nabaztag
   # is set
-  # see #Response::NabaTimezone
+  # see Response::NabaTimezone
   GET_TIMEZONE = Action.new 4
 
   # Get the signature defined for the Nabaztag
-  # see #Response::NabaSignature
+  # see Response::NabaSignature
   GET_SIGNATURE = Action.new 5
 
   # Get a count and the list of people in
   # your blacklist
-  # see #Response::NabaBlacklist
+  # see Response::NabaBlacklist
   GET_BLACKLISTED = Action.new 6
 
   # Get to know if the Nabaztag is sleeping
   # (YES) or not (NO)
-  # see #Response::RabbitSleep
+  # see Response::RabbitSleep
   GET_RABBIT_STATUS = Action.new 7
 
   # Get to know if the Nabaztag is a Nabaztag
   # (V1) or a Nabaztag/tag (V2)
-  # see #Response::RabbitVersion
+  # see Response::RabbitVersion
   GET_RABBIT_VERSION = Action.new 8
 
   # Get a list of all supported
   # languages/voices for TTS (text to speach)
   # engine
-  # see #Response::TtsVoiceList
+  # see Response::TtsVoiceList
   GET_LANG_VOICE = Action.new 9
 
   # Get the name of the Nabaztag
-  # see #Response::NabName
+  # see Response::NabName
   GET_RABBIT_NAME = Action.new 10
 
   # Get the languages selected for the Nabaztag
-  # see #Response::UserLangList
+  # see Response::UserLangList
   GET_SELECTED_LANG = Action.new 11
 
   # Get a preview of a message. This works only
   # with the urlPlay parameter and URLs like
   # broad/001/076/801/262.mp3
-  # see #Response::LinkPreview
+  # see Response::LinkPreview
   GET_MESSAGE_PREVIEW = Action.new 12
 
   # Get the position of the ears to your Nabaztag.
   # this request is not an action in the Violet
   # API but we do as if it was because it's make
   # more sens (to me).
-  # see #Response::EarPositionSend and 
-  # #Response::EarPositionNotSend
+  # see Response::EarPositionSend and 
+  # Response::EarPositionNotSend
   GET_EARS_POSITION = Action.new nil
-  def GET_EARS_POSITION.to_url
+  def GET_EARS_POSITION.to_url #:nodoc:
       'ears=ok'
   end
 
   # Send your Rabbit to sleep
-  # see #Response::CommandSend
+  # see Response::CommandSend
   SET_RABBIT_ASLEEP = Action.new 13
 
   # Wake up your Rabbit
-  # see #Response::CommandSend
+  # see Response::CommandSend
   SET_RABBIT_AWAKE = Action.new 14
 
 

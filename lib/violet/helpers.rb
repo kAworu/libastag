@@ -1,24 +1,27 @@
 =begin rdoc
 ==violet/helpers.rb
-
+TODO
+some handy class/methods and modifications.
 =end
 
 module Helpers
   require "rexml/document"
-  # #REXML::Attributes#to_hash seems to be broken.
+
+
+  # REXML::Attributes#to_hash seems to be broken.
   class REXML::Attributes
     if defined? to_hash
       alias :to_hash_old :to_hash
     end
 
-    # convert attributes to an instance of #Hash.
+    # convert attributes to an instance of Hash.
     def to_hash
       self.inject(Hash.new) { |h,key,value| h[key] = value }
     end
   end
 
 
-  # #REXML::Document#clone seems to be broken.
+  # REXML::Document#clone seems to be broken.
   class REXML::Document
     if defined? clone
       alias :clone_old :clone
@@ -32,7 +35,7 @@ module Helpers
 
 
   # taken from active_support/inflector.rb,
-  # see http://rubyforge.org/projects/activesupport/
+  # see http://rubyforge.org/projects/activesupport
   #
   # Constantize tries to find a declared constant with the name specified
   # in the string. It raises a NameError when the name is not in CamelCase

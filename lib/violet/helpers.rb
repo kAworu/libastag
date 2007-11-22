@@ -5,7 +5,9 @@
 module Helpers
 
 
-  # taken from active_support/inflector.rb TODO: add project url
+  # taken from active_support/inflector.rb,
+  # see http://rubyforge.org/projects/activesupport/
+  #
   # Constantize tries to find a declared constant with the name specified
   # in the string. It raises a NameError when the name is not in CamelCase
   # or is not initialized.

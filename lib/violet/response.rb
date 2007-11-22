@@ -1,9 +1,45 @@
-# violet/response.rb
-#
-#
-# TODO
+=begin rdoc
+==violet/response.rb
+
+
+this module handle servers messages.
+you should only use #Response.parse with the server's message (xml) as argument,
+it returns a #ServerRsp instance from the corresponding class (see all the #ServerRsp subclass).
+with a ServerRsp instance you can use :
+* r.has_x?        => return +true+ if r has at least one element of name "x", return +false+ otherwhise.
+* r.has_many_xs?  => return +true+ if r has more than one element of name "x", return +false+ otherwhise.
+* r.x             => find the first xml element of name x and return it's text if any, or a hash of it's options
+* r.xs            => find all xml element of name x and return an #Array of their text if any, or their options.
+* r.good?         => return +true+ if the response is not an error, +false+ otherwhise.
+* r.bad?          => return +true+ if the response is an error, +false+ otherwhise.
+
+=Examples :
+    >> rsp = Response.parse('<?xml version="1.0" encoding="UTF-8"?><rsp><blacklist nb="2"/><pseudo name="toto"/><pseudo name="titi"/></rsp>')
+    => #<Response::Blacklist:0x2acd8c08f2f8 @xml=<UNDEFINED> ... </>>
+    >> rsp.good?
+    => true
+    >> rsp.has_message?
+    => false
+    >> rsp.message
+    NameError: undefined local variable or method message for #<Response::Blacklist:0x2b1f056afdc0 @xml=<UNDEFINED> ... </>>
+    >> rsp.has_blacklist?
+    => true
+    >> rsp.blacklist
+    => {"nb"=>"2"}
+    >> rsp.pseudo
+    => {"name"=>"toto"}
+    >> rsp.has_many_pseudos?
+    => true
+    >> rsp.pseudos
+    => [{"name"=>"toto"}, {"name"=>"titi"}]
+
+if you want to access to the #REXML::Document object of a #ServerRsp you can either use rsp.xml or use #ServerRsp.get_all method.
+you may don't need to use them and only access elements as seen before.
+
+=end
+
 module Response
-  require "helpers.rb"
+  require File.dirname(__FILE__) + "helpers.rb"
 
   # ProtocolExcepion are raised if server
   # return a unknown response.
@@ -22,8 +58,12 @@ module Response
     # responses
     class ServerRsp
       # It's possible to access the
-      # #REXML::Document object, if needed.
-      attr_reader :xml
+      # #REXML::Document object if needed, but
+      # we return a copy to avoid modification of
+      # this object.
+      def xml
+        @xml.clone
+      end
 
       # create a new ServerRsp.
       # try parse the given raw xml argument.
@@ -67,15 +107,6 @@ module Response
       # message element (method_missing is not
       # called in this case!). You will have to
       # call #get_all by hand in this case.
-      # Examples :
-      #     >> rsp = Response.parse('<?xml version="1.0" encoding="UTF-8"?><rsp><blacklist nb="2"/><pseudo name="toto"/><pseudo name="titi"/></rsp>')
-      #     => #<Response::Blacklist:0x2acd8c08f2f8 @xml=<UNDEFINED> ... </>>
-      #     >> rsp.blacklist
-      #     => {"nb"=>"2"}
-      #     >> rsp.pseudo
-      #     => {"name"=>"toto"}
-      #     >> rsp.pseudos
-      #     => [{"name"=>"toto"}, {"name"=>"titi"}]
       def method_missing name
         # our method to transforme
         # #REXML::Element into text or hash
@@ -211,28 +242,22 @@ module Response
   # element's name.
   def Response.parse raw
     tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
-    klass =
-    if tmp.has_message? # try to handle simple responses
-      klassname = Response.constants.grep(/#{tmp.message}/i).first  rescue nil
-      Helpers.constantize "#{self}::#{klassname}"                   rescue nil
-    elsif   tmp.has_listfriend?         then ListFriend
-    elsif   tmp.has_listreceivedmsg?    then ListReceivedMsg
-    elsif   tmp.has_timezone?           then Timezone
-    elsif   tmp.has_signature?          then Signature
-    elsif   tmp.has_blacklist?          then Blacklist
-    elsif   tmp.has_rabbitSleep?        then RabbitSleep
-    elsif   tmp.has_rabbitVersion?      then RabbitVersion
-    elsif   tmp.has_voiceListTTS?       then VoiceListTts
-    elsif   tmp.has_rabbitName?         then RabbitName
-    elsif   tmp.has_langListUser?       then LangListUser
-    else                                nil
+    klassname = if tmp.has_message?
+                  /#{tmp.message}/i
+                else
+                  /#{tmp.xml.root.elements[1].name}/i # REXML::Elements#[] has index 1-based and not 0-based, so we really fetch the first element's name
+                end
+
+    klass = nil
+    begin
+      klass = Helpers.constantize "#{self}::#{Response.constants.grep(klassname).first}"
+      raise if klass.nil?
+    rescue
+      raise ProtocolExcepion.new("unhandled server's response : #{raw}")
     end
 
-    if klass.nil?
-      raise ProtocolExcepion.new("unhandled server's response : #{raw}")
-    else
-      klass.new raw
-    end
+    # return a new fresh instance of the detected class !
+    klass.new raw
   end
 
 end # module Response

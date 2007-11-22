@@ -1,22 +1,32 @@
-# violet/helpers.rb
-#
-#
-# TODO
+=begin rdoc
+==violet/helpers.rb
+
+=end
+
 module Helpers
   require "rexml/document"
-
-  # TODO
+  # #REXML::Attributes#to_hash seems to be broken.
   class REXML::Attributes
     if defined? to_hash
       alias :to_hash_old :to_hash
     end
 
+    # convert attributes to an instance of #Hash.
     def to_hash
-      h = Hash.new
-      self.each do |key,value|
-        h[key] = value
-      end
-      h
+      self.inject(Hash.new) { |h,key,value| h[key] = value }
+    end
+  end
+
+
+  # #REXML::Document#clone seems to be broken.
+  class REXML::Document
+    if defined? clone
+      alias :clone_old :clone
+    end
+
+    # make a full copy.
+    def clone
+      Document.new(self.write.join)
     end
   end
 

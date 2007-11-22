@@ -1,5 +1,5 @@
 =begin rdoc
-==violet/response.rb
+==response.rb
 
 
 this module handle servers messages.
@@ -39,9 +39,10 @@ if you want to access to the REXML::Document object of a ServerRsp you can eithe
 =end
 
 module Response
-  require File.dirname(__FILE__) + "helpers.rb"
+  require File.join(File.dirname(__FILE__), 'helpers.rb')
 
   # ProtocolExcepion are raised if server return a unknown response.
+  #
   # see http://api.nabaztag.com/docs/home.html#messages
   class ProtocolExcepion < Exception; end
 
@@ -50,16 +51,15 @@ module Response
   module Base
     require 'rexml/document'
 
-    # abstract class.
     # base class used to handle Violet server's responses.
+    #
+    # We want to access to all xml elements easily, like the powerful ActiveRecord 'find' function. This method
+    # provide virtual accessor and predicate for elements. If you have a ServerRsp, rsp.has_message? will return
+    # +true+ if rsp has a 'message' element, and rsp.has_many_messages? will return +true+ if rsp has more than one
+    # 'message' element. rsp.message will return the first message element and rsp.messages will return an Array
+    # that contains all message elements of rsp.
     class ServerRsp
-      # It's possible to access the REXML::Document object if needed, but we return a copy to avoid modification
-      # of this object.
-      def xml
-        @xml.clone
-      end
-
-      # create a new ServerRsp. try parse the given raw xml argument.
+      # create a ServerRsp with the raw argument.
       def initialize raw
         begin
           @xml = REXML::Document.new raw
@@ -67,6 +67,9 @@ module Response
           raise ProtocolExcepion.new(e.message)
         end
       end
+
+      # It's possible to access the REXML::Document object if needed
+      attr_reader :xml
 
       # return +true+ if the response is not an error, +false+ otherwhise.
       def good?
@@ -78,7 +81,7 @@ module Response
         self.is_a? BadServerRsp
       end
 
-      # get all xml element that match name. You can give a block that take a REXML::Element in parameter.
+      # get all xml's element that match name. You can give a block that take a REXML::Element in parameter.
       def get_all name
         name = name.to_s
         # REXML::XPath.match(@xml, element).collect do |e|  <= this one is for a recursive search.
@@ -87,11 +90,8 @@ module Response
         end
       end
 
-      # We want to access to all xml elements easily, like the powerful ActiveRecord 'find' function.  Note that
-      # if a class that inherit of this one, define a method (let's say message()), you'll not be able anymore to
-      # access to message element by rsp.message (method_missing is not called in this case!). You will have to call
-      # get_all by hand in this case.
-      def method_missing name
+      # here some magic code :)
+      def method_missing name # :nodoc:
         # this method to transforme REXML::Element into text or hash
         filter = Proc.new do |e|
           e.text || e.attributes.to_hash
@@ -116,12 +116,12 @@ module Response
     end
 
 
-    # handle errors messages. All error message are 'simple': they only have a message and a comment element.
+    # superclass of error messages. They're 'simple', they only have a message and a comment element.
     # see http://api.nabaztag.com/docs/home.html#messages
     class BadServerRsp < ServerRsp; end
 
 
-    # handle messages with infos. good responses contains often infos (like ear position etc).
+    # superclass of messages with infos. good responses often contains infos (like ear position etc).
     class GoodServerRsp < ServerRsp; end
 
   end # module Response::Base
@@ -132,55 +132,139 @@ module Response
   # Errors messages from server
   #
 
+
   # Too much requests sent
+  #     >> rsp.message      # => "ABUSESENDING"
+  #     >> rsp.comment      # => "Too much message sending,try later"
   class AbuseSending < Base::BadServerRsp; end
+
+
   # Wrong token or serial number 
-  class NoGoodSerialOrToken < Base::BadServerRsp; end
+  #     >> rsp.message      # => "NOGOODTOKENORSERIAL"
+  #     >> rsp.comment      # => "Your token or serial number are not correct !"
+  class NoGoodTokenOrSerial < Base::BadServerRsp; end
+
+
   # Wrong music id (either not in your personal MP3s list or not existing)
+  #     >> rsp.message      # => "MESSAGENOTSEND"
+  #     >> rsp.comment      # => "Your idmessage is not correct or is private"
   class MessageNotSend < Base::BadServerRsp; end
-  #  urlList parameter missing (api_stream)
-  class NoCorrectParameters < Base::BadServerRsp; end
-  # The rabbit is not a Nabaztag/tag
-  class NotV2Rabbit < Base::BadServerRsp; end
+
+
   # Nabcast not posted because music id is not part of your personal MP3s or because the nabcast id does not belong
   # to you or is not existing
+  #     >> rsp.message      # => "NABCASTNOTSEND"
+  #     >> rsp.comment      # => "Your idmessage is private"
+  #
+  #     >> rsp.message      # => "NABCASTNOTSEND"
+  #     >> rsp.comment      # => "Your nabcast id is not correct or is private"
   class NabCastNotSend < Base::BadServerRsp; end
+
+
   # Message not sent
+  #     >> rsp.message      # => "MESSAGENOTSEND"
+  #     >> rsp.comment      # => "Your message could not be sent"
   class MessageNotSend < Base::BadServerRsp; end
+
+
   # TTS creation problem or TTS not send
+  #     >> rsp.message      # => "TTSNOTSEND"
+  #     >> rsp.comment      # => "Your text could not be sent"
+  #
+  #     >> rsp.message      # => "TTSNOTSEND"
+  #     >> rsp.comment      # => "Your text could not be sent"
   class TtsNotSend < Base::BadServerRsp; end
+
+
   # Choregraphy message not sent because the "chor" command was incorrect
+  #     >> rsp.message      # => "CHORNOTSEND"
+  #     >> rsp.comment      # => "Your chor could not be sent (bad chor)"
   class ChorNotSend < Base::BadServerRsp; end
+
+
   # Ears position not sent because the given position is incorrect
+  #     >> rsp.message      # => "EARPOSITIONNOTSEND"
+  #     >> rsp.comment      # => "Your ears command could not be sent"
   class EarPositionNotSend < Base::BadServerRsp; end
+
+
   # URL was not sent (api_stream)
+  #     >> rsp.message      # => "WEBRADIONOTSEND"
+  #     >> rsp.comment      # => "Your webradio could not be sent"
   class WebRadioNotSend < Base::BadServerRsp; end
+
+
+  #  urlList parameter missing (api_stream)
+  #     >> rsp.message      # => "NOCORRECTPARAMETERS"
+  #     >> rsp.comment      # => "Please check urlList parameter !"
+  class NoCorrectParameters < Base::BadServerRsp; end
+
+
+  # The rabbit is not a Nabaztag/tag
+  #     >> rsp.message      # => "NOTV2RABBIT"
+  #     >> rsp.comment      # => "V2 rabbit can use this action"
+  class NotV2Rabbit < Base::BadServerRsp; end
+
 
   #
   # Infos messages from server
   #
-  # TODO: complete doc =>
-  # request references, examples, attributes of objects.
+  # TODO: complete doc => request references
   #
 
+
   # Nabcast posted
+  #     >> rsp.message      # => "NABCASTSEND"
+  #     >> rsp.comment      # => "Your nabcast has been sent"
   class NabCastSend < Base::GoodServerRsp; end
+
+
   # Message sent
+  #     >> rsp.message      # => "MESSAGESEND"
+  #     >> rsp.comment      # => "Your message has been sent"
   class MessageSend < Base::GoodServerRsp; end
+
+
   # TTS message sent
+  #     >> rsp.message      # => "TTSSEND"
+  #     >> rsp.comment      # => "Your text has been sent"
   class TtsSend < Base::GoodServerRsp; end
+
+
   # Choregraphy message sent
+  #     >> rsp.message      # => "CHORSEND"
+  #     >> rsp.comment      # => "Your chor has been sent"
   class ChorSend < Base::GoodServerRsp; end
+
+
   # Ears position sent
+  #     >> rsp.message      # => "EARPOSITIONSEND"
+  #     >> rsp.comment      # => "Your ears command has been sent"
   class EarPositionSend < Base::GoodServerRsp; end
+
+
   # URL was sent (api_stream)
+  #     >> rsp.message      # => "WEBRADIOSEND"
+  #     >> rsp.comment      # => "Your webradio has been sent"
   class WebRadioSend < Base::GoodServerRsp; end
-  # Preview the TTS or music (with music id)
-  # without sending it
-  class LinkPreview < Base::GoodServerRsp; end
+
+
   # Getting the ears position
+  #     >> rsp.message          # => "POSITIONEAR"
+  #     >> rsp.leftposition     # => "8"
+  #     >> rsp.rightposition    # => "10"
   class PositionEar < Base::GoodServerRsp; end
+
+
+  # Preview the TTS or music (with music id) without sending it
+  #     >> rsp.message      # => "LINKPREVIEW"
+  #     >> rsp.comment      # => "XXXX"
+  class LinkPreview < Base::GoodServerRsp; end
+
+
   # Getting friends list
+  #     >> rsp.listfriend   # => {"nb"=>"2"}
+  #     >> rsp.friends      # => [{"name"=>"toto"}, {"name"=>"titi"}]
   class ListFriend < Base::GoodServerRsp; end
   # a count and the list of the messages in your inbox
   class ListReceivedMsg < Base::GoodServerRsp; end
@@ -205,8 +289,9 @@ module Response
   class CommandSend < Base::GoodServerRsp; end
 
 
-  # parse given xml and return a new ServerRsp from the corresponding class. Violet messages aren't easy to
-  # identify, because there is not id.
+  # parse given raw (xml text) and return a new ServerRsp from the corresponding class. Violet messages aren't
+  # easy to identify, because there is not id. So we have to study the xml content if there are no message
+  # element (easier to detect the response type).
   def Response.parse raw
     tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
     klassname = if tmp.has_message?

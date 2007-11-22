@@ -16,20 +16,9 @@ module Helpers
 
     # convert attributes to an instance of Hash.
     def to_hash
-      self.inject(Hash.new) { |h,key,value| h[key] = value }
-    end
-  end
-
-
-  # REXML::Document#clone seems to be broken.
-  class REXML::Document
-    if defined? clone
-      alias :clone_old :clone
-    end
-
-    # make a full copy.
-    def clone
-      Document.new(self.write.join)
+      h = Hash.new
+      self.each { |key,value| h[key] = value }
+      h
     end
   end
 

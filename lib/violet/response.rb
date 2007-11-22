@@ -22,6 +22,10 @@ module Response
     # base class used to handle Violet server's
     # responses
     class ServerRsp
+      # It's possible to access the
+      # #REXML::Document object, if needed.
+      attr_reader :xml
+
       # create a new ServerRsp.
       # try parse the given raw xml argument.
       def initialize raw
@@ -46,9 +50,10 @@ module Response
 
       # TODO
       def get_all element
+        # REXML::XPath.match(@xml, element).collect do |e|  <= this one is for a recursive search.
         @xml.root.elements.collect(element) do |e|
           if block_given?
-            yield(e)
+            yield e
           else
             e
           end
@@ -62,31 +67,22 @@ module Response
       # one, define a method (let's say message()),
       # you'll not be able anymore to access to
       # message element (method_missing is not
-      # called in this case!). In this particular
-      # case you can call #ServerRsp#__xmlement__
-      # (in fact, that's why __xmlement__ is a 
-      # public method.
+      # called in this case!). You will have to
+      # call #get_all by hand in this case.
       #
       # you can access to elements by typing their name (say that r is a ServerRsp) :
       #   r.has_message?    # => true
       #   r.message         # => [ "NOTV2RABBIT" ]
       #   r.comment         # => [ "V2 rabbit can use this action" ]
       #
-      #   TODO: rewritte it
       def method_missing name
         name = name.to_s
-
-        t.elements.collect
-        root = @xml.root
-
-        if name =~ /has_(.+)?/
-          not root.elements[$1].nil?
+        if name =~ /has_(.+)?/ # it's a 
+          not get_all($1).empty?
         else
-          if root.elements[name]
-            get_all(name)
-          else
-            raise NameError.new("undefined local variable or method #{name} for #{self.inspect}")
-          end
+          matches = get_all(name)
+          raise NameError.new("undefined local variable or method #{name} for #{self.inspect}") if matches.empty?
+          matches.collect { |e| e.text || e.attributes }
         end
       end
 
@@ -196,7 +192,6 @@ module Response
   # Violet messages aren't easy to identify,
   # because there is not id to responses. Then we
   # have to do tricky things to handle them.
-  # XXX: performances ?
   def Response.parse raw
     tmp = Base::ServerRsp.new raw # ouch ! we shouldn't create ServerRsp instances, but act as if you didn't see ;)
     klass =
@@ -204,7 +199,7 @@ module Response
       klassname = Response.constants.grep(/#{tmp.message.first}/i).first    rescue nil
       Helpers.constantize "#{self}::#{klassname}"                           rescue nil
 
-    # TODO: study more.
+    # TODO: abuse of get_all or method_missing, rename class !
     elsif   tmp.has_listfriend?         then FriendList
     elsif   tmp.has_listreceivedmsg?    then RecivedMsgList
     elsif   tmp.has_timezone?           then NabaTimezone

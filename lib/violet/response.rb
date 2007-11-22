@@ -94,8 +94,8 @@ module Response
         end
         # main case statment
         case name.to_s
-        when /^has_(.+)\?$/         then get_all($1).size > 0
         when /^has_many_(.+)s\?$/   then get_all($1).size > 1
+        when /^has_(.+)\?$/         then get_all($1).size > 0
         when /(.*)s$/               then check.call( get_all($1).collect(&filter) )
         when /(.*)/                 then check.call( get_all($1).collect(&filter) ).first
         end
@@ -213,8 +213,8 @@ module Response
     tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
     klass =
     if tmp.has_message? # try to handle simple responses
-      klassname = Response.constants.grep(/#{tmp.message.first}/i).first    rescue nil
-      Helpers.constantize "#{self}::#{klassname}"                           rescue nil
+      klassname = Response.constants.grep(/#{tmp.message}/i).first  rescue nil
+      Helpers.constantize "#{self}::#{klassname}"                   rescue nil
     elsif   tmp.has_listfriend?         then ListFriend
     elsif   tmp.has_listreceivedmsg?    then ListReceivedMsg
     elsif   tmp.has_timezone?           then Timezone

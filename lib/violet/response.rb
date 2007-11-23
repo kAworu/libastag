@@ -25,13 +25,13 @@ from the corresponding class (see all the ServerRsp subclass).  with a ServerRsp
     >> rsp.has_blacklist?
     => true
     >> rsp.blacklist
-    => {"nb"=>"2"}
+    => {:nb=>"2"}
     >> rsp.pseudo
-    => {"name"=>"toto"}
+    => {:name=>"toto"}
     >> rsp.has_many_pseudos?
     => true
     >> rsp.pseudos
-    => [{"name"=>"toto"}, {"name"=>"titi"}]
+    => [{:name=>"toto"}, {:name=>"titi"}]
 
 if you want to access to the REXML::Document object of a ServerRsp you can either use rsp.xml or use
 ServerRsp.get_all method.  you may don't need to use them and only access elements as seen before.
@@ -154,6 +154,7 @@ module Response
 
   #
   # Errors messages from server
+  # TODO: complete doc => request references
   #
 
 

@@ -17,7 +17,7 @@ module Helpers
     # convert attributes to an instance of Hash.
     def to_hash
       h = Hash.new
-      self.each { |key,value| h[key] = value }
+      self.each { |key,value| h[key.to_sym] = value }
       h
     end
   end

@@ -152,6 +152,11 @@ module Response
 
 
 
+  # superclass of messages with no infos.
+  # TODO:
+  class EmptyServerRsp < Base::ServerRsp; end
+
+
   #
   # Errors messages from server
   # TODO: complete doc => request references
@@ -351,7 +356,6 @@ module Response
   class CommandSend < Base::GoodServerRsp; end
 
 
-
   # parse given raw (xml text) and return a new ServerRsp from the corresponding class. Violet messages aren't
   # easy to identify, because there is not id. So we have to study the xml content if there are no message
   # element (easier to detect the response type). this method raise a ProtocolExcepion if it's fail to detect the
@@ -370,7 +374,9 @@ module Response
   #
   def Response.parse raw
     tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
-    klassname = if tmp.has_message?
+    klassname = if raw =~ /<rsp><\/rsp>/i
+                  "EmptyServerRsp"
+                elsif tmp.has_message?
                   /#{tmp.message}/i
                 else
                   /#{tmp.xml.root.elements[1].name}/i # REXML::Elements#[] has index 1-based and not 0-based, so we really fetch the first element's name
@@ -381,7 +387,7 @@ module Response
       klass = Helpers.constantize "#{self}::#{Response.constants.grep(klassname).first}"
       raise if klass.nil?
     rescue
-      raise ProtocolExcepion.new("unknown server's response : #{raw}")
+      raise ($DEBUG ? $! : ProtocolExcepion.new("unknown server's response : #{raw}"))
     end
 
     klass.new raw

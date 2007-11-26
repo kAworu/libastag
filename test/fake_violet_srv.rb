@@ -36,8 +36,8 @@ ACTION = {
   %{},
   %{},
   %{},
-  %{},
-  %{},
+  %{<?xml version="1.0" encoding="UTF-8"?><rsp><message>MESSAGENOTSEND</message><comment>Your idmessage is not correct or is private</comment></rsp>},
+  %{<?xml version="1.0" encoding="UTF-8"?><rsp><message>MESSAGENOTSEND</message><comment>Your idmessage is not correct or is private</comment></rsp>},
 ]
 }
 
@@ -84,6 +84,6 @@ s = HTTPServer.new(
 s.mount("/api.jsp",         VioletApiServelet)
 s.mount("/api_stream.jsp",  VioletApiServelet)
 
-trap("INT"){ s.shutdown }
+trap("INT") { s.shutdown }
 s.start
 

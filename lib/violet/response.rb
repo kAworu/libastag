@@ -60,13 +60,9 @@ module Response
     # that contains all message elements of rsp (see doc of Response module for examples).
     class ServerRsp
       # create a ServerRsp with the raw argument. raw must be the xml text of the server's response. if the xml
-      # is malformed, a ProtocolExcepion is raised.
+      # is malformed, a REXML::ParseException will be raised.
       def initialize raw
-        begin
-          @xml = REXML::Document.new raw
-        rescue REXML::ParseException => e
-          raise ProtocolExcepion.new(e.message)
-        end
+        @xml = REXML::Document.new raw
       end
 
       # It's possible to access the REXML::Document object if needed, but try to use virtual accessors and get_all
@@ -377,9 +373,9 @@ module Response
     klassname = if raw =~ /<rsp><\/rsp>/i
                   "EmptyServerRsp"
                 elsif tmp.has_message?
-                  /#{tmp.message}/i
+                  /^#{tmp.message}$/i
                 else
-                  /#{tmp.xml.root.elements[1].name}/i # REXML::Elements#[] has index 1-based and not 0-based, so we really fetch the first element's name
+                  /^#{tmp.xml.root.elements[1].name}$/i # REXML::Elements#[] has index 1-based and not 0-based, so we really fetch the first element's name
                 end
 
     klass = nil
@@ -387,7 +383,8 @@ module Response
       klass = Helpers.constantize "#{self}::#{Response.constants.grep(klassname).first}"
       raise if klass.nil?
     rescue
-      raise ($DEBUG ? $! : ProtocolExcepion.new("unknown server's response : #{raw}"))
+      $! = nil
+      raise ProtocolExcepion.new("unknown server's response : #{raw}")
     end
 
     klass.new raw

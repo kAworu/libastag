@@ -48,7 +48,11 @@ module Nabastag
       @token  = token.to_i
 #     _________                     _________
 #    /         \                   /         \
-      @left_ear,                    @right_ear          = RabbitEar.new :left, RabbitEar.new :right
+     @right_ear,                    @left_ear          = RabbitEar.new :right, RabbitEar.new :left
+#   |           |                 |           |
+#   |           |                 |           |
+#   |           |                 |           |
+#   |           |                 |           |
 #   |           |                 |           |
 #   |           |                 |           |
 #   |           |                 |           |
@@ -66,7 +70,7 @@ module Nabastag
 #   |                                         |
 #   |                                         |
 #   |                                         |
-     @left_led,     @middle_led,    @right_led          = RabbitLed.new :left, RabbitLed.new :middle, RabbitLed.new :right
+     @right_led,    @middle_led,     @left_led          = RabbitLed.new :right, RabbitLed.new :middle, RabbitLed.new :left
 #   |                                         |
 #   |                                         |
 #   |                                         |

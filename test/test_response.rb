@@ -203,12 +203,6 @@ class ParserTest < Test::Unit::TestCase
     assert_kind_of      Response::Base::GoodServerRsp, rsp
   end
 
-  def test_MessageNotSend
-    rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>MESSAGENOTSEND</message><comment>Your message could not be sent</comment></rsp>'
-    assert_instance_of  Response::MessageNotSend, rsp
-    assert_kind_of      Response::Base::BadServerRsp, rsp
-  end
-
   def test_TtsNotSend
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>TTSNOTSEND</message><comment>Your text could not be sent</comment></rsp>'
     assert_instance_of  Response::TtsNotSend, rsp
@@ -218,18 +212,6 @@ class ParserTest < Test::Unit::TestCase
   def test_TtsSend
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>TTSSEND</message><comment>Your text has been sent</comment></rsp>'
     assert_instance_of  Response::TtsSend, rsp
-    assert_kind_of      Response::Base::GoodServerRsp, rsp
-  end
-
-  def test_TtsSend
-    rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>TTSSEND</message><comment>Your text has been sent</comment></rsp>'
-    assert_instance_of  Response::TtsSend, rsp
-    assert_kind_of      Response::Base::GoodServerRsp, rsp
-  end
-
-  def test_ChorSend
-    rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>CHORSEND</message><comment>Your chor has been sent</comment></rsp>'
-    assert_instance_of  Response::ChorSend, rsp
     assert_kind_of      Response::Base::GoodServerRsp, rsp
   end
 

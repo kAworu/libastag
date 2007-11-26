@@ -18,9 +18,9 @@ spec = Gem::Specification.new do |spec|
   spec.email        = "kaworu@kaworu.ch"
   spec.homepage     = "http://libastag.kaworu.ch"
 
-  spec.test_files       = Dir["test/*"]
+  spec.test_files       = Dir["test/**/*"]
   spec.extra_rdoc_files = Dir["README.txt", "LICENSE.txt"]
-  spec.files            = Dir["lib/**/*", "bin/*"] + spec.test_files + spec.extra_rdoc_files
+  spec.files            = Dir["lib/**/*", "bin/*"] + Dir["Rakefile"] + spec.test_files + spec.extra_rdoc_files
   spec.version          = "0.0.1"
 end
 

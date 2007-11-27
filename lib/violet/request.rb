@@ -16,7 +16,7 @@ module Request
   API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp'
 
   # the VioletAPI url for stream request.
-  API_URL = 'http://api.nabaztag.com/vl/FR/api_stream.jsp'
+  APISTREAM_URL = 'http://api.nabaztag.com/vl/FR/api_stream.jsp'
 
 
 
@@ -49,7 +49,7 @@ module Request
 
       # create a new EventCollection with two childrens.
       def initialize one, another
-        if one.respond_to?(:to_url) and another.respond_to?(:to_url) # Coin Coin ! >°_/
+        if one.respond_to?(:to_url) and another.respond_to?(:to_url) # \_o<  Coin !
           @childrens = [ one, another ]
         else
           raise ArgumentError.new("bad parameters")
@@ -88,13 +88,13 @@ module Request
     # create a new Query object with the give parameters.  +serial+ and +token+ parameters should be checked at
     # a higher level.
     def initialize(event, serial, token)
-      raise ArgumentError.new("first parameter has no 'to_url' method" unless event.respond_to?(:to_url)
+      raise ArgumentError.new("first parameter has no 'to_url' method") unless event.respond_to?(:to_url)
       @event, @serial, @token = event, serial, token
     end
 
     # return the complet url: API_URL with the +serial+ , +token+ and options.
     def to_url
-      [ API_URL + '?', "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
+      [ API_URL + '?' + "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
     end
 
     # TODO

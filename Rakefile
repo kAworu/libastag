@@ -57,10 +57,10 @@ gem_spec = Gem::Specification.new do |s|
   s.description = <<-EOF
                   libastag is a full featured library for the Nabastag API (see http://api.nabaztag.com/docs/home.html).
                   It provide also a minimal fake Violet HTTP Server written with WEBrick for testing purpose.
-                  Main concepts are :
-                  * complete Rdoc documentations
-                  * Unit testing
-                  * Easy to use
+                  Main goals are :
+                  - complete Rdoc documentations
+                  - Unit testing
+                  - Easy to use
                   EOF
 
   s.has_rdoc            = true

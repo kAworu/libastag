@@ -7,7 +7,7 @@ require 'test/unit'
 
 
 
-class ParserTest < Test::Unit::TestCase
+class ResponseTest < Test::Unit::TestCase
 
   def test_bad_protocol
     assert_raise(Response::ProtocolExcepion) { Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><comment>a comment without messages</comment></rsp>' }

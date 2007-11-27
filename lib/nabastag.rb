@@ -39,11 +39,11 @@ module Nabastag
     public
     # create a new Rabbit with given +serial+ and +token+.
     # make a *basic* syntax check of +serial+ and +token+
-    # (see #SERIAL_MATCHER and #TOKEN_MATCHER), but it doesn't meen
+    # (see #SERIAL_MATCHER and #TOKEN_MATCHER), but it doesn't mean
     # that they are valid.
     def initialize serial, token
       raise ArgumentError.new("bad serial : #{serial}") unless serial =~ SERIAL_MATCHER
-      raise ArgumentError.new("bad token  : #{token}")  unless token  =~  TOKEN_MATCHER
+      raise ArgumentError.new("bad token  : #{token }") unless token  =~  TOKEN_MATCHER
       @serial = serial.upcase
       @token  = token.to_i
 #     _________                     _________

@@ -154,21 +154,29 @@ module Stats
 end
 
 
+desc "display somes stats (# of lines, # lines of comment/code etc.) of this project"
 task 'stats' do
-  include Stats
 
-  files = Dir["lib/**/*.rb"]
+  def stats_display name, files
+    include Stats
+    puts "\nStats (#{name})"
+    puts ScriptLines.headline
+    sum = ScriptLines.new("TOTAL (#{files.size} file(s))")
 
-  puts ScriptLines.headline
-  sum = ScriptLines.new("TOTAL (#{files.size} file(s))")
-
-  files.each do |f|
-    sl = ScriptLines.new f
-    sl.read File.read(f)
-    puts sl
-    sum += sl
+    files.each do |f|
+      sl = ScriptLines.new f
+      sl.read File.read(f)
+      puts sl
+      sum += sl
+    end
+    puts sum
+    sum
   end
 
+  libstats  =   stats_display 'lib files',    Dir["lib/**/*.rb"]
+  teststats =   stats_display 'test files',   Dir["test/**/*.rb"]
+
   puts
-  puts sum
+  puts "Ratio (test    / code) = %.2f" % (teststats.lines_of_code.to_f / libstats.lines_of_code)
+  puts "Ratio (comment / code) = %.2f" % (libstats.lines_of_comments.to_f / libstats.lines_of_code)
 end

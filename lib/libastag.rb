@@ -1,8 +1,10 @@
 
-require 'violetapi.rb'
 
 # Handy class/methods to control a Nabastag.
-module Nabastag
+module Libastag
+  VERSION = '0.0.1'
+
+  require File.join( File.dirname(__FILE__), 'violet', 'violetapi.rb' )
 
   # this class store all attribute of a Nabaztag.
   # it receive events and  retrieve information
@@ -48,7 +50,7 @@ module Nabastag
       @token  = token.to_i
 #     _________                     _________
 #    /         \                   /         \
-     @right_ear,                    @left_ear          = RabbitEar.new :right, RabbitEar.new :left
+     @right_ear,                    @left_ear          = RabbitEar.new(:right), RabbitEar.new(:left)
 #   |           |                 |           |
 #   |           |                 |           |
 #   |           |                 |           |
@@ -65,12 +67,12 @@ module Nabastag
 #   |         |                     |         |
 #   |                                         |
 #   |                  ___                    |
-                     @top_led                           = RabbitLed.new :top
+                     @top_led                           = RabbitLed.new(:top)
 #   |                   |                     |
 #   |                                         |
 #   |                                         |
 #   |                                         |
-     @right_led,    @middle_led,     @left_led          = RabbitLed.new :right, RabbitLed.new :middle, RabbitLed.new :left
+     @right_led,    @middle_led,     @left_led          = RabbitLed.new(:right), RabbitLed.new(:middle), RabbitLed.new(:left)
 #   |                                         |
 #   |                                         |
 #   |                                         |

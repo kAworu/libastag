@@ -1,22 +1,66 @@
+#
 # libastag's Rakefile
-MY_PROJECT_VERSION = '0.0.1'
+#
+
+require 'rake/rdoctask'
+require 'rake/testtask'
+require 'rake/clean'
+require 'rake/gempackagetask'
+
+
+
+task :default => [:stats]
+
+
+# perso infos
+MY_NAME         = 'Alexandre Perrin'
+MY_EMAIL        = 'kaworu@kaworu.ch'
+
+
+# Project infos
+PROJECT         = 'libastag'
+PROJECT_SUMMARY = %{A library for sending commands to Nabastag(/tag) (see http://www.nabaztag.com)}
+
+require File.join( File.dirname(__FILE__), 'lib', "#{PROJECT}.rb" )
+PROJECT_VERSION = eval "#{PROJECT.capitalize}::VERSION"
+
+
+# rubyforge infos
+RUBYFORGE_USER  = 'kaworu'
+WEBSITE_DIR     = '/'
+RDOC_HTML_DIR   = '/doc'
+UNIX_NAME       = 'libastag'
+
+
+# Rdoc
+RDOC_DIR        = "doc"
+RDOC_OPTIONS    = [
+                  "--title",    "#{PROJECT} API documentation",
+                  "--main",     "README",
+                  "--charset",  "utf-8",
+                  "--diagram",
+                  "--line-number",
+                  "--inline-source"
+                  ]
+
+
+# files
+LIB_FILES       = Dir["lib/**/*.rb"]
+TEST_FILES      = Dir["test/**/*.rb"]
+
+RDOC_FILES      = %w[ README MIT-LICENSE TODO CHANGES ] + LIB_FILES
+DIST_FILES      = %w[ Rakefile ] + LIB_FILES + TEST_FILES + RDOC_FILES
+
 
 
 #
 # RDoc
 #
-require 'rake/rdoctask'
-
 Rake::RDocTask.new do |rd|
-  rd.main        = "README"
-  rd.rdoc_dir    = 'doc'
-  rd.title       = 'libastag.rb'
-  rd.options     = %w[ --charset utf-8
-                      --diagram
-                      --line-number
-                      --inline-source
-                      ]
-  rd.rdoc_files.include( "README", "MIT-LICENSE", "TODO", "CHANGES", "lib/**/*.rb")
+  rd.main        = RDOC_FILES.first
+  rd.rdoc_dir    = RDOC_DIR
+  rd.options     = RDOC_OPTIONS
+  rd.rdoc_files.include(*RDOC_FILES)
 end
 
 
@@ -24,8 +68,6 @@ end
 #
 # Tests
 #
-require 'rake/testtask'
-
 Rake::TestTask.new do |t|
   t.verbose = true
   t.warning = true
@@ -36,25 +78,21 @@ end
 #
 # Cleaning
 #
-require 'rake/clean'
-
 CLOBBER.include 'doc', 'pkg'
-CLEAN.include   'test/**/*.tmp'
+CLEAN.include   'doc', 'pkg', 'test/**/*.tmp'
 
 
 
 #
 # Pkg
 #
-require 'rake/gempackagetask'
-
 gem_spec = Gem::Specification.new do |s|
-  s.author       = "Alexandre Perrin"
-  s.email        = "kaworu@kaworu.ch"
-  s.homepage     = "http://libastag.rubyforge.org"
+  s.author       = MY_NAME
+  s.email        = MY_EMAIL
+  s.homepage     = "http://#{UNIX_NAME}.rubyforge.org"
 
-  s.name        = "libastag"
-  s.summary     = "A library for sending commands to Nabastag(/tag) (see http://www.nabaztag.com)"
+  s.name        = PROJECT
+  s.summary     = PROJECT_SUMMARY
   s.description = <<-EOF
                   libastag is a full featured library for the Nabastag API (see http://api.nabaztag.com/docs/home.html).
                   It provide also a minimal fake Violet HTTP Server written with WEBrick for testing purpose.
@@ -65,13 +103,13 @@ gem_spec = Gem::Specification.new do |s|
                   EOF
 
   s.has_rdoc            = true
-  s.rdoc_options        = %w[ --charset utf-8 --diagram --line-number --inline-source ]
-  s.extra_rdoc_files    = Dir["README", "MIT-LICENSE", "TODO", "CHANGES", "doc/**/*"]
+  s.rdoc_options        = RDOC_OPTIONS
+  s.extra_rdoc_files    = RDOC_FILES + Dir["#{RDOC_DIR}/**/*"]
 
-  s.test_files          = Dir["test/**/*"]
-  s.files               = Dir["lib/**/*", "bin/*", "Rakefile"] + s.test_files + s.extra_rdoc_files
-  s.version             = MY_PROJECT_VERSION
-  #s.rubyforge_project   = "libastag" # TODO
+  s.test_files          = TEST_FILES
+  s.files               = DIST_FILES
+  s.version             = PROJECT_VERSION
+  #s.rubyforge_project   = UNIX_NAME # TODO
 end
 
 Rake::GemPackageTask.new(gem_spec) do |pkg|
@@ -173,10 +211,38 @@ task 'stats' do
     sum
   end
 
-  libstats  =   stats_display 'lib files',    Dir["lib/**/*.rb"]
-  teststats =   stats_display 'test files',   Dir["test/**/*.rb"]
+  libstats  =   stats_display 'lib files',  LIB_FILES
+  teststats =   stats_display 'test files', TEST_FILES
 
   puts
   puts "Ratio (test    / code) = %.2f" % (teststats.lines_of_code.to_f / libstats.lines_of_code)
   puts "Ratio (comment / code) = %.2f" % (libstats.lines_of_comments.to_f / libstats.lines_of_code)
 end
+
+
+
+#
+# publish
+#
+desc "Upload documentation to RubyForge"
+task "publish-doc" => [ "rdoc" ] do
+  rubyforge_path = "/var/www/gforge-projects/#{UNIX_NAME}/"
+  sh "scp -r '#{RDOC_DIR}/*' '#{RUBYFORGE_USER}@rubyforge.org:#{rubyforge_path}", :verbose => true
+end
+
+desc "setup for RubyForge"
+task "rubyforge-setup" do
+  unless File.exist?( File.join(ENV['HOME'], '.rubyforge') )
+    puts <<-EOF
+    rubyforge will ask you to edit its config file now.
+    Please set the 'username' and 'password' entries to your RubyForge username/password !
+    press ENTER to continue.
+    EOF
+    STDIN.gets
+    sh "rubyforge setup", :verbose => true
+end
+
+desc "Upload package to RubyForge"
+task "publish-packages" => [ "test", "rdoc", "package", "rubyforge-login" ] do
+end
+

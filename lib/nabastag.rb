@@ -10,9 +10,9 @@ module Nabastag
   # (see public methods).
   class Rabbit
     # used to check serial
-    SERIAL_MATCHER = /[0-9A-F]+/i
+    SERIAL_MATCHER = /^[0-9A-F]+$/i
     # used to check token
-    TOKEN_MATCHER  = /[0-9]+/
+    TOKEN_MATCHER  = /^[0-9]+$/
 
     #Serial number of the Nabaztag that will receive events
     attr_reader :serial

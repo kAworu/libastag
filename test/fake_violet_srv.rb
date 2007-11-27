@@ -6,13 +6,13 @@ module FakeVioletSrv
   include WEBrick
 
   # used to check serial
-  SERIAL_MATCHER = /[0-9A-F]+/i
+  SERIAL_MATCHER = /^[0-9A-F]+$/i
   # used to check token
-  TOKEN_MATCHER  = /[0-9]+/
+  TOKEN_MATCHER  = /^[0-9]+$/
 
   # errors messages list
   ERRORS = {
-    :WrongSerialOrToken => %{<?xml version="1.0" encoding="UTF-8"?><rsp><message>NOGOODTOKENORSERIAL</message><comment>Your token or serial number are not correct !</comment></rsp>}
+    :WrongSerialOrToken => %{<message>NOGOODTOKENORSERIAL</message><comment>Your token or serial number are not correct !</comment>}
   }
 
   # action list
@@ -45,6 +45,8 @@ module FakeVioletSrv
       rsp = ERRORS[:WrongSerialOrToken]
     elsif opts[:action]
       rsp = ACTIONS[opts[:action].to_i]
+    elsif opts[:ears] == 'ok'
+      rsp = '<message>POSITIONEAR</message><leftposition>8</leftposition><rightposition>10</rightposition>'
     end
 
     res.body = <<-EOF

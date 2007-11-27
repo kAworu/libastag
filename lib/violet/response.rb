@@ -371,7 +371,7 @@ module Response
   #
   def Response.parse raw
     tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
-    klassname = if raw =~ /<rsp><\/rsp>/i
+    klassname = if raw =~ /<rsp>[\t\n ]*<\/rsp>/i
                   "EmptyServerRsp"
                 elsif tmp.has_message?
                   /^#{tmp.message}$/i

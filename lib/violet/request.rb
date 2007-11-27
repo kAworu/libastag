@@ -84,6 +84,7 @@ module Request
   # see http://api.nabaztag.com/docs/home.html
   class Query
     require 'open-uri'
+    require 'cgi'
 
     # create a new Query object with the give parameters.  +serial+ and +token+ parameters should be checked at
     # a higher level.
@@ -94,7 +95,7 @@ module Request
 
     # return the complet url: API_URL with the +serial+ , +token+ and options.
     def to_url
-      [ API_URL + '?' + "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
+      API_URL+'?' << [ "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
     end
 
     # TODO
@@ -218,7 +219,7 @@ module Request
   # if it was because it's make more sens (to me).
   # Examples:
   #     TODO
-  # see Response::EarPositionSend and Response::EarPositionNotSend
+  # see Response::PositionEar
   GET_EARS_POSITION = Action.new nil
 
   def GET_EARS_POSITION.to_url

@@ -93,7 +93,7 @@ module Request
       @event, @serial, @token = event, serial, token
     end
 
-    # return the complet url: API_URL with the +serial+ , +token+ and options.
+    # return the complet url: API_URL with the +serial+, +token+ and options.
     def to_url
       API_URL+'?' << [ "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
     end

@@ -110,12 +110,13 @@ module Request
 
   #
   # Actions list.
-  # GET_EARS_POSITION has no +id+ because it's not an action in the Violet API.
   #
   # see http://api.nabaztag.com/docs/home.html#getinfo
   #
 
   # actions are used to retrieve informations about the Nabaztag or the Nabaztag's owners.
+  # see constants of Request module, all Action are Request constant that begin with GET or
+  # SET. Request::GET_EARS_POSITION is not an Action in the violet API, but we implement it as it was.
   #
   # see http://api.nabaztag.com/docs/home.html#getinfo
   class Action < Base::Event
@@ -124,7 +125,7 @@ module Request
       @id = id
     end
 
-    # override Event#to_url.
+    # Action have only action= option.
     def to_url
         "action=#{@id}"
     end
@@ -133,84 +134,96 @@ module Request
 
   # Preview the TTS or music (with music id) without sending it
   # Examples:
-  #     TODO
+  #     Query.new(GET_LINKPREVIEW, my_serial, my_token).send! # => #<Response::LinkPreview:0x2aaaab100f88 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::LinkPreview
   GET_LINKPREVIEW = Action.new 1
 
 
   # Get a list of your friends
   # Examples:
-  #     TODO
+  #     Query.new(GET_FRIENDS_LIST, my_serial, my_token).send!    # => #<Response::ListFriend:0x2af08fd53568 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::ListFriend
   GET_FRIENDS_LIST = Action.new 2
 
 
   # Get a count and the list of the messages in your inbox
   # Examples:
-  #     TODO
+  #     Query.new(GET_INBOX_LIST, my_serial, my_token).send!  # => #<Response::ListReceivedMsg:0x2aaaab0e0be8 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::ListReceivedMsg
   GET_INBOX_LIST = Action.new 3
 
 
   # Get the timezone in which your Nabaztag is set
   # Examples:
-  #     TODO
+  #     Query.new(GET_TIMEZONE, my_serial, my_token).send!    # => #<Response::Timezone:0x2af091e58f60 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::Timezone
   GET_TIMEZONE = Action.new 4
  
 
   # Get the signature defined for the Nabaztag
   # Examples:
-  #     TODO
+  #     Query.new(GET_SIGNATURE, my_serial, my_token).send!   # => #<Response::Signature:0x2aaaab0c8c28 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::Signature
   GET_SIGNATURE = Action.new 5
 
 
   # Get a count and the list of people in your blacklist
   # Examples:
-  #     TODO
+  #     Query.new(GET_BLACKLISTED, my_serial, my_token).send! # => #<Response::Blacklist:0x2aaaab0b0ad8 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::Blacklist
   GET_BLACKLISTED = Action.new 6
 
 
   # Get to know if the Nabaztag is sleeping (YES) or not (NO)
   # Examples:
-  #     TODO
+  #     Query.new(GET_RABBIT_STATUS, my_serial, my_token).send! # => #<Response::RabbitSleep:0x2aaaab092a88 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::RabbitSleep
   GET_RABBIT_STATUS = Action.new 7
 
 
   # Get to know if the Nabaztag is a Nabaztag (V1) or a Nabaztag/tag (V2)
   # Examples:
-  #     TODO
+  #     Query.new(GET_RABBIT_VERSION, my_serial, my_token).send!    # => #<Response::RabbitVersion:0x2aaaab07c418 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::RabbitVersion
   GET_RABBIT_VERSION = Action.new 8
 
 
   # Get a list of all supported languages/voices for TTS (text to speach) engine
   # Examples:
-  #     TODO
+  #         Query.new(GET_LANG_VOICE, my_serial, my_token).send!    # => #<Response::VoiceListTts:0x2aaaab064368 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::VoiceListTts
   GET_LANG_VOICE = Action.new 9
 
 
   # Get the name of the Nabaztag
   # Examples:
-  #     TODO
+  #     Query.new(GET_RABBIT_NAME, my_serial, my_token).send!   # => #<Response::RabbitName:0x2aaaab0459b8 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::RabbitName
   GET_RABBIT_NAME = Action.new 10
 
 
   # Get the languages selected for the Nabaztag
   # Examples:
-  #     TODO
+  #     Query.new(GET_SELECTED_LANG, my_serial, my_token).send! # => #<Response::LangListUser:0x2aaaab02bfb8 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::LangListUser
   GET_SELECTED_LANG = Action.new 11
 
 
   # Get a preview of a message. This works only with the urlPlay parameter and URLs like broad/001/076/801/262.mp3
   # Examples:
-  #     TODO
+  #     Query.new(GET_MESSAGE_PREVIEW, my_serial, my_token).send!   # => #<Response::LinkPreview:0x2aaaab011258 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::LinkPreview
   GET_MESSAGE_PREVIEW = Action.new 12
 
@@ -218,7 +231,8 @@ module Request
   # Get the position of the ears to your Nabaztag. this request is not an action in the Violet API but we do as
   # if it was because it's make more sens (to me).
   # Examples:
-  #     TODO
+  #     Query.new(GET_EARS_POSITION, my_serial, my_token).send! # => #<Response::PositionEar:0x2aaaaaff6908 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::PositionEar
   GET_EARS_POSITION = Action.new nil
 
@@ -229,14 +243,16 @@ module Request
 
   # Send your Rabbit to sleep
   # Examples:
-  #     TODO
+  #     Query.new(SET_RABBIT_ASLEEP, my_serial, my_token).send! # => #<Response::CommandSend:0x2aaaaafbf980 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::CommandSend
   SET_RABBIT_ASLEEP = Action.new 13
 
 
   # Wake up your Rabbit
   # Examples:
-  #     TODO
+  #     Query.new(SET_RABBIT_AWAKE, my_serial, my_token).send!  # => #<Response::CommandSend:0x2aaaaafa60c0 @xml=<UNDEFINED> ... </>>
+  #
   # see Response::CommandSend
   SET_RABBIT_AWAKE = Action.new 14
 

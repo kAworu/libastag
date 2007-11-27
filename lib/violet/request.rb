@@ -13,16 +13,17 @@ module Request
   require File.join( File.dirname(__FILE__), 'response.rb' )
 
   # the VioletAPI url where we send request.
-  #
-  # see http://api.nabaztag.com/docs/home.html#sendevent
-  API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp?'
+  API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp'
+
+  # the VioletAPI url for stream request.
+  API_URL = 'http://api.nabaztag.com/vl/FR/api_stream.jsp'
 
 
 
   # contains some basic stuff, abstract class etc. they're used internaly and you should only use derivated class.
-  module Base #:nodoc:
+  module Base
 
-    # superclass of message send to Violet should inherit of this class.
+    # superclass of message send to Violet.
     class Event
       # constructor has to be overrided
       def initialize
@@ -56,7 +57,7 @@ module Request
       end
 
       # needed by Enumerable module.
-      # usage should be ovious :)
+      # usage should be obvious :)
       def each
         @childrens.each do |e|
           if e.kind_of? Enumerable
@@ -87,18 +88,19 @@ module Request
     # create a new Query object with the give parameters.  +serial+ and +token+ parameters should be checked at
     # a higher level.
     def initialize(event, serial, token)
+      raise ArgumentError.new("first parameter has no 'to_url' method" unless event.respond_to?(:to_url)
       @event, @serial, @token = event, serial, token
     end
 
     # return the complet url: API_URL with the +serial+ , +token+ and options.
     def to_url
-      [ API_URL, "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
+      [ API_URL + '?', "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
     end
 
     # TODO
     def send! response_type=nil
       # rescue ?
-      rsp = open(self.to_url) { |srv| srv.read }
+      rsp = open(self.to_url) { |rsp| rsp.read }
       if response_type == :xml then rsp else Response.parse(rsp) end
     end
   end
@@ -138,35 +140,35 @@ module Request
   # Get a list of your friends
   # Examples:
   #     TODO
-  # see Response::FriendList
+  # see Response::ListFriend
   GET_FRIENDS_LIST = Action.new 2
 
 
   # Get a count and the list of the messages in your inbox
   # Examples:
   #     TODO
-  # see Response::RecivedMsgList
+  # see Response::ListReceivedMsg
   GET_INBOX_LIST = Action.new 3
 
 
   # Get the timezone in which your Nabaztag is set
   # Examples:
   #     TODO
-  # see Response::NabaTimezone
+  # see Response::Timezone
   GET_TIMEZONE = Action.new 4
  
 
   # Get the signature defined for the Nabaztag
   # Examples:
   #     TODO
-  # see Response::NabaSignature
+  # see Response::Signature
   GET_SIGNATURE = Action.new 5
 
 
   # Get a count and the list of people in your blacklist
   # Examples:
   #     TODO
-  # see Response::NabaBlacklist
+  # see Response::Blacklist
   GET_BLACKLISTED = Action.new 6
 
 
@@ -187,21 +189,21 @@ module Request
   # Get a list of all supported languages/voices for TTS (text to speach) engine
   # Examples:
   #     TODO
-  # see Response::TtsVoiceList
+  # see Response::VoiceListTts
   GET_LANG_VOICE = Action.new 9
 
 
   # Get the name of the Nabaztag
   # Examples:
   #     TODO
-  # see Response::NabName
+  # see Response::RabbitName
   GET_RABBIT_NAME = Action.new 10
 
 
   # Get the languages selected for the Nabaztag
   # Examples:
   #     TODO
-  # see Response::UserLangList
+  # see Response::LangListUser
   GET_SELECTED_LANG = Action.new 11
 
 
@@ -219,7 +221,6 @@ module Request
   # see Response::EarPositionSend and Response::EarPositionNotSend
   GET_EARS_POSITION = Action.new nil
 
-  # :nodoc:
   def GET_EARS_POSITION.to_url
       'ears=ok'
   end

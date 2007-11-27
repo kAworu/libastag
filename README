@@ -37,12 +37,6 @@ You can found the latest version of libastag at :
 to install libastag's gem :
     gem install --remote libastag
 
-=Package installation
-
-download the latest version of the library and uncompress it.
-CD into the top project directory and type :
-    ruby install.rb
-
 
 
 ==Online Documentation

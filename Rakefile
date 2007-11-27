@@ -1,4 +1,5 @@
 # libastag's Rakefile
+MY_PROJECT_VERSION = '0.0.1'
 
 
 #
@@ -50,7 +51,7 @@ require 'rake/gempackagetask'
 gem_spec = Gem::Specification.new do |s|
   s.author       = "Alexandre Perrin"
   s.email        = "kaworu@kaworu.ch"
-  s.homepage     = "http://libastag.kaworu.ch" # TODO @rubyforge
+  s.homepage     = "http://libastag.rubyforge.org"
 
   s.name        = "libastag"
   s.summary     = "A library for sending commands to Nabastag(/tag) (see http://www.nabaztag.com)"
@@ -69,7 +70,7 @@ gem_spec = Gem::Specification.new do |s|
 
   s.test_files          = Dir["test/**/*"]
   s.files               = Dir["lib/**/*", "bin/*", "Rakefile"] + s.test_files + s.extra_rdoc_files
-  s.version             = "0.0.1"
+  s.version             = MY_PROJECT_VERSION
   #s.rubyforge_project   = "libastag" # TODO
 end
 

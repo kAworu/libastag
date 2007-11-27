@@ -1,0 +1,70 @@
+=libastag --- a Nabastag communication library
+[Author]
+    Perrin Alexandre <kaworu@kaworu.ch>
+
+
+==About
+
+libastag is a full featured library for the Nabastag API (see http://api.nabaztag.com/docs/home.html).
+It provide also a minimal fake HTTP Violet Server based on WEBrick for testing purpose.
+
+Main goals are :
+- complete Rdoc documentation
+- Unit testing
+- Easy to use
+
+
+
+==About Nabastag
+
+The Nabaztag is a small electronic rabbit with lights, motorised ears, and speech.
+
+http://www.nabaztag.com
+
+
+
+==Download
+
+You can found the latest version of libastag at :
+- http://rubyforge.org/project/showfiles.php/group_id=TODO
+
+
+
+== Installation
+
+=Gem Instalation
+
+to install libastag's gem :
+    gem install --remote libastag
+
+=Package installation
+
+download the latest version of the library and uncompress it.
+CD into the top project directory and type :
+    ruby install.rb
+
+
+
+==Online Documentation
+
+- libastag Documentation Homepage : http://libastag.kaworu.ch/
+- libastag Project Page : http://rubyforge/projects/libastag
+
+
+
+==Irb Examples
+TODO
+
+
+
+==Other Nabastag related Ruby projects
+- TODO
+
+
+
+==Copying
+
+Copyright (c) 2007 Perrin Alexandre
+
+You may use, copy and redistribute this library under the terms of the MIT licence (see MIT-LICENSE file).
+

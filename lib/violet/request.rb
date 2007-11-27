@@ -241,7 +241,8 @@ module Request
   # see Response::EarPositionSend and Response::EarPositionNotSend
   GET_EARS_POSITION = Action.new nil
 
-  def GET_EARS_POSITION.to_url #:nodoc:
+  # :nodoc:
+  def GET_EARS_POSITION.to_url
       'ears=ok'
   end
 

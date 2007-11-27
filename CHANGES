@@ -1,0 +1,5 @@
+==v0.1_pre1
+
+- Response module is working
+- Response is tested
+- Base of Request module is working (Query class, sending message, actions)

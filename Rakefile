@@ -224,12 +224,6 @@ end
 #
 # publish
 #
-desc "Upload documentation to RubyForge"
-task "publish-doc" => [ "rdoc" ] do
-  rubyforge_path = "/var/www/gforge-projects/#{UNIX_NAME}/"
-  sh "scp -r '#{RDOC_DIR}/*' '#{RUBYFORGE_USER}@rubyforge.org:#{rubyforge_path}", :verbose => true
-end
-
 desc "setup for RubyForge"
 task "rubyforge-setup" do
   unless File.exist?( File.join(ENV['HOME'], '.rubyforge') )
@@ -239,10 +233,44 @@ task "rubyforge-setup" do
     press ENTER to continue.
     EOF
     STDIN.gets
-    sh "rubyforge setup", :verbose => true
+    sh "rubyforge setup #{UNIX_NAME}", :verbose => true
+  end
+end
+
+desc "Connection to RubyForge's server"
+task "rubyforge-login" => %w[rubyforge-setup] do
+  sh "rubyforge login", :verbose => true
+end
+
+
+desc "Upload documentation to RubyForge"
+task "publish-doc" => %w[rdoc] do
+  rubyforge_path = "/var/www/gforge-projects/#{UNIX_NAME}/"
+  sh "scp -r '#{RDOC_DIR}/*' '#{RUBYFORGE_USER}@rubyforge.org:#{rubyforge_path}", :verbose => true
 end
 
 desc "Upload package to RubyForge"
-task "publish-packages" => [ "test", "rdoc", "package", "rubyforge-login" ] do
+task "publish-packages" => %w[package rubyforge-login] do
+  cd "pkg" do
+    %w[ gem tgz zip ].each do |pkgtype|
+      sh "rubyforge add_release #{UNIX_NAME} #{UNIX_NAME} #{PROJECT_VERSION} #{UNIX_NAME}-#{PROJECT_VERSION}.#{pkgtype}"
+    end
+  end
 end
 
+desc  "Run tests, generate RDoc and create packages."
+task "pre-release" => %w[clobber clean] do
+  puts "Preparing release of #{PROJECT} v#{PROJECT_VERSION}"
+  Rake::Task["test"].invoke
+  Rake::Task["rdoc"].invoke
+  Rake::Task["package"].invoke
+end
+
+desc "Publish a new release of #{PROJECT}"
+task "publish" => %w[pre-release] do
+  puts "Uploading doc..."
+  Rake::Task["publish-doc"].invoke
+  puts "Uploading packages..."
+  Rake::Task["publish-packages"].invoke
+  puts "release done !"
+end

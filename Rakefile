@@ -232,7 +232,7 @@ task "rubyforge-setup" do
     press ENTER to continue.
     EOF
     STDIN.gets
-    sh "rubyforge setup #{UNIX_NAME}", :verbose => true
+    sh "rubyforge setup", :verbose => true
   end
 end
 

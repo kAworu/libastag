@@ -26,6 +26,7 @@ sleep 1 # wait for server start.
 
 
 class ActionTest < Test::Unit::TestCase
+  require 'rexml/document'
 
   GOOD_SERIAL   = '1234567890AB'
   GOOD_TOKEN    = '1234567890'
@@ -47,10 +48,7 @@ class ActionTest < Test::Unit::TestCase
 
   def test_xml_response
     rsp = Request::Query.new(Request::GET_RABBIT_NAME, GOOD_SERIAL, GOOD_TOKEN).send!(:xml)
-    assert_nothing_raised do
-      require 'rexml/document'
-      REXML::Document.new(rsp)
-    end
+    assert_nothing_raised { REXML::Document.new(rsp) }
   end
 
 

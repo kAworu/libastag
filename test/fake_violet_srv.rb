@@ -12,31 +12,31 @@ module FakeVioletSrv
 
   # errors messages list
   ERRORS = {
-    :WrongSerialOrToken => %{<message>NOGOODTOKENORSERIAL</message><comment>Your token or serial number are not correct !</comment>}
+    :WrongSerialOrToken => '<message>NOGOODTOKENORSERIAL</message><comment>Your token or serial number are not correct !</comment>'
   }
 
   # action list
   ACTIONS = [
-      %{}, # array index begin to 0, but our action API begin to 1
-      %{<message>LINKPREVIEW</message><comment>XXXX</comment>},
-      %{<listfriend nb="1"/><friend name="toto"/>},
-      %{<listreceivedmsg nb="1"/><msg from="toto" title="my message" date="today 11:59" url="broad/001/948.mp3"/>},
-      %{<timezone>(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</timezone>},
-      %{<signature>XXXXX</signature>},
-      %{<blacklist nb="1"/><pseudo name="toto"/>},
-      %{<rabbitSleep>YES</rabbitSleep>},
-      %{<rabbitVersion>V1</rabbitVersion>},
-      %{<voiceListTTS nb="2"/><voice lang="fr" command="claire22k"/><voice lang="de" command="helga22k"/>},
-      %{<rabbitName>nabmaster</rabbitName>},
-      %{<langListUser nb="4"/><myLang lang="fr"/><myLang lang="us"/><myLang lang="uk"/><myLang lang="de"/>} ,
-      %{<message>LINKPREVIEW</message><comment>XXXX</comment>},
-      %{<message>COMMANDSEND</message><comment>You rabbit will change status</comment>},
-      %{<message>COMMANDSEND</message><comment>You rabbit will change status</comment>}
+      '', # array index begin to 0, but our action API begin to 1
+      '<message>LINKPREVIEW</message><comment>XXXX</comment>',
+      '<listfriend nb="1"/><friend name="toto"/>',
+      '<listreceivedmsg nb="1"/><msg from="toto" title="my message" date="today 11:59" url="broad/001/948.mp3"/>',
+      '<timezone>(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</timezone>',
+      '<signature>XXXXX</signature>',
+      '<blacklist nb="1"/><pseudo name="toto"/>',
+      '<rabbitSleep>YES</rabbitSleep>',
+      '<rabbitVersion>V1</rabbitVersion>',
+      '<voiceListTTS nb="2"/><voice lang="fr" command="claire22k"/><voice lang="de" command="helga22k"/>',
+      '<rabbitName>nabmaster</rabbitName>',
+      '<langListUser nb="4"/><myLang lang="fr"/><myLang lang="us"/><myLang lang="uk"/><myLang lang="de"/>' ,
+      '<message>LINKPREVIEW</message><comment>XXXX</comment>',
+      '<message>COMMANDSEND</message><comment>You rabbit will change status</comment>',
+      '<message>COMMANDSEND</message><comment>You rabbit will change status</comment>'
   ]
 
   class VioletApiServelet < HTTPServlet::AbstractServlet
   def do_GET(req, res)
-    res['Content-Type'] = "text/plain"
+    res['Content-Type'] = 'text/plain'
 
     # getting options.
     opts = parse_opts(req)
@@ -78,13 +78,13 @@ module FakeVioletSrv
 
     s = HTTPServer.new(
       :Port            => port,
-      :charset         => "UTF-8"
+      :charset         => 'UTF-8'
     )
 
-    s.mount("/api.jsp",         VioletApiServelet)
-    s.mount("/api_stream.jsp",  VioletApiServelet)
+    s.mount('/api.jsp',         VioletApiServelet)
+    s.mount('/api_stream.jsp',  VioletApiServelet)
 
-    trap("INT") { s.shutdown }
+    trap('INT') { s.shutdown }
     s.start
   end
 end

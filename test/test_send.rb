@@ -33,7 +33,7 @@ class ActionTest < Test::Unit::TestCase
   BAD_SERIAL    = '1X34U67890AB'
   BAD_TOKEN     = '123456789A'
 
-  LOCAL_URI     = "http://localhost:3000/api.jsp?"
+  LOCAL_URI     = 'http://localhost:3000/api.jsp?'
 
   # Hacky ! yes !
   Request::API_URL = LOCAL_URI

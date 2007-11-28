@@ -33,15 +33,15 @@ class ResponseTest < Test::Unit::TestCase
 
   def test_get_all
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><rabbitSleep>YES</rabbitSleep></rsp>'
-    assert_equal "YES", rsp.get_all(:rabbitSleep) { |e| e.text }.first
+    assert_equal 'YES', rsp.get_all(:rabbitSleep) { |e| e.text }.first
 
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>LINKPREVIEW</message><comment>a comment</comment></rsp>'
-    assert_equal "LINKPREVIEW", rsp.get_all(:message) { |e| e.text }.first
-    assert_equal "a comment", rsp.get_all(:comment) { |e| e.text }.first
+    assert_equal 'LINKPREVIEW', rsp.get_all(:message) { |e| e.text }.first
+    assert_equal 'a comment', rsp.get_all(:comment) { |e| e.text }.first
 
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><listfriend nb="2"/><friend name="toto"/><friend name="tata"/></rsp>'
-    assert_equal({:nb => "2"}, rsp.get_all(:listfriend) { |e| e.attributes.to_hash }.first)
-    assert_equal [{:name => "toto"},{:name => "tata"}], rsp.get_all(:friend) { |e| e.attributes.to_hash }
+    assert_equal({:nb => '2'}, rsp.get_all(:listfriend) { |e| e.attributes.to_hash }.first)
+    assert_equal [{:name => 'toto'},{:name => 'tata'}], rsp.get_all(:friend) { |e| e.attributes.to_hash }
   end
 
 
@@ -80,14 +80,14 @@ class ResponseTest < Test::Unit::TestCase
 
   def test_accessors_with_hash
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><listfriend nb="3"/><friend name="toto"/><friend name="tata"/><friend name="titi"/></rsp>'
-    assert_equal({:nb => "3"}, rsp.listfriend)
-    assert_equal({:name => "toto"}, rsp.friend)
-    assert_equal [{:name => "toto"}, {:name => "tata"}, {:name => "titi"}], rsp.friends
+    assert_equal({:nb => '3'}, rsp.listfriend)
+    assert_equal({:name => 'toto'}, rsp.friend)
+    assert_equal [{:name => 'toto'}, {:name => 'tata'}, {:name => 'titi'}], rsp.friends
     assert_equal rsp.listfriend[:nb], rsp.friends.size.to_s
 
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><listreceivedmsg nb="1"/><msg from="toto" title="my message" date="today 11:59" url="broad/001/948.mp3"/></rsp>'
-    assert_equal rsp.listreceivedmsg, {:nb => "1"}
-    assert_equal({:from => "toto", :title => "my message", :date => "today 11:59", :url => "broad/001/948.mp3"}, rsp.msg)
+    assert_equal rsp.listreceivedmsg, {:nb => '1'}
+    assert_equal({:from => 'toto', :title => 'my message', :date => 'today 11:59', :url => 'broad/001/948.mp3'}, rsp.msg)
     assert_equal rsp.listreceivedmsg[:nb].to_i, rsp.msgs.size
   end
 

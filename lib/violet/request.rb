@@ -49,7 +49,7 @@ module Request
         if one.respond_to?(:to_url) and another.respond_to?(:to_url) # \_o<  Coin !
           @childrens = [ one, another ]
         else
-          raise ArgumentError.new("bad parameters")
+          raise ArgumentError.new('bad parameters')
         end
       end
 
@@ -86,7 +86,7 @@ module Request
     # a higher level. +event+ parameter is usually an Event object, but you can give any Object that respond to
     # to_url.
     def initialize h
-      raise ArgumentError.new("event parameter has no 'to_url' method or is empty") unless h[:event] and h[:event].respond_to?(:to_url)
+      raise ArgumentError.new('event parameter has no "to_url" method or is empty') unless h[:event] and h[:event].respond_to?(:to_url)
       @event, @serial, @token = h[:event], h[:serial], h[:token]
     end
 
@@ -111,7 +111,7 @@ module Request
 
     def initialize h
       @h = h.dup
-      raise ArgumentError.new("at least :posright or :posleft must be set")             unless @h[:posleft] or @h[:posright]
+      raise ArgumentError.new('at least :posright or :posleft must be set')             unless @h[:posleft] or @h[:posright]
       raise ArgumentError.new(":posright must be between #{MIN_POS} and #{MAX_POS}")    if @h[:posright] and not @h[:posright].to_i.between?(MIN_POS,MAX_POS)
       raise ArgumentError.new(":posleft  must be between #{MIN_POS} and #{MAX_POS}")    if @h[:posleft ] and not @h[:posleft ].to_i.between?(MIN_POS,MAX_POS)
     end
@@ -138,7 +138,7 @@ module Request
 
 
     def initialize h
-      raise ArgumentError.new("no text given") unless h[:tts]
+      raise ArgumentError.new('no text given') unless h[:tts]
       @h = h.dup
 
       raise ArgumentError.new("speed values must be between #{MIN_SPEED} and #{MAX_SPEED}") unless (@h[:speed] ||= DEFAULT_SPEED).to_i.between?(MIN_SPEED,MAX_SPEED)

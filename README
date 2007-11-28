@@ -1,4 +1,4 @@
-=libastag --- a Nabastag communication library
+=libastag --- a Nabastag communication library for Ruby
 [Author]
     Perrin Alexandre <kaworu@kaworu.ch>
 
@@ -26,7 +26,7 @@ http://www.nabaztag.com
 ==Download
 
 You can found the latest version of libastag at :
-- http://rubyforge.org/project/showfiles.php/group_id=TODO
+- http://rubyforge.org/project/showfiles.php/group_id=4947
 
 
 
@@ -41,8 +41,8 @@ to install libastag's gem :
 
 ==Online Documentation
 
-- libastag Documentation Homepage : http://libastag.kaworu.ch
-- libastag Project Page : http://rubyforge/projects/libastag
+- libastag Documentation Homepage : http://libastag.rubyforge.org
+- libastag Project Page :  http://rubyforge.org/projects/libastag
 
 
 

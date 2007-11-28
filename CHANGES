@@ -1,6 +1,7 @@
 ==v0.0.1
 
 - Response module is working
-- Response is tested
+- test/doc for Response
+
 - Base of Request module is working (Query class, sending message, actions)
-- Action request are tested
+- test/doc for Action and Request::Base

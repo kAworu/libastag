@@ -13,31 +13,37 @@ task :default => [:stats]
 
 
 # perso infos
-MY_NAME         = 'Alexandre Perrin'
-MY_EMAIL        = 'kaworu@kaworu.ch'
+MY_NAME         = "Alexandre Perrin"
+MY_EMAIL        = "makoto.kaworu@gmail.com"
 
 
 # Project infos
-PROJECT         = 'libastag'
-PROJECT_SUMMARY = %{A library for sending commands to Nabastag(/tag) (see http://www.nabaztag.com)}
+PROJECT         = "libastag"
+PROJECT_SUMMARY = "A library for sending commands to Nabastag(/tag) (see http://www.nabaztag.com)"
+PROJECT_DESC    = <<-EOF
+                  libastag is a full featured library for the Nabastag API (see http://api.nabaztag.com/docs/home.html).
+                  It provide also a minimal fake Violet HTTP Server written with WEBrick for testing purpose.
+                  Main goals are :
+                  - complete Rdoc documentations
+                  - Unit testing
+                  - Easy to use
+                  EOF
 
 require File.join( File.dirname(__FILE__), 'lib', "#{PROJECT}.rb" )
 PROJECT_VERSION = eval "#{PROJECT.capitalize}::VERSION"
 
 
 # rubyforge infos
-RUBYFORGE_USER  = 'kaworu'
-WEBSITE_DIR     = '/'
-RDOC_HTML_DIR   = '/doc'
-UNIX_NAME       = 'libastag'
+RUBYFORGE_USER  = "kaworu"
+UNIX_NAME       = "libastag"
 
 
 # Rdoc
 RDOC_DIR        = "doc"
 RDOC_OPTIONS    = [
-                  "--title",    "#{PROJECT} API documentation",
-                  "--main",     "README",
-                  "--charset",  "utf-8",
+                  "--title",        "#{PROJECT} API documentation",
+                  "--main",         "README",
+                  "--charset",      "utf-8",
                   "--diagram",
                   "--line-number",
                   "--inline-source"
@@ -93,14 +99,7 @@ gem_spec = Gem::Specification.new do |s|
 
   s.name        = PROJECT
   s.summary     = PROJECT_SUMMARY
-  s.description = <<-EOF
-                  libastag is a full featured library for the Nabastag API (see http://api.nabaztag.com/docs/home.html).
-                  It provide also a minimal fake Violet HTTP Server written with WEBrick for testing purpose.
-                  Main goals are :
-                  - complete Rdoc documentations
-                  - Unit testing
-                  - Easy to use
-                  EOF
+  s.description = PROJECT_DESC
 
   s.has_rdoc            = true
   s.rdoc_options        = RDOC_OPTIONS
@@ -109,7 +108,7 @@ gem_spec = Gem::Specification.new do |s|
   s.test_files          = TEST_FILES
   s.files               = DIST_FILES
   s.version             = PROJECT_VERSION
-  #s.rubyforge_project   = UNIX_NAME # TODO
+  s.rubyforge_project   = UNIX_NAME
 end
 
 Rake::GemPackageTask.new(gem_spec) do |pkg|
@@ -238,19 +237,19 @@ task "rubyforge-setup" do
 end
 
 desc "Connection to RubyForge's server"
-task "rubyforge-login" => %w[rubyforge-setup] do
+task "rubyforge-login" => %w[ rubyforge-setup ] do
   sh "rubyforge login", :verbose => true
 end
 
 
 desc "Upload documentation to RubyForge"
-task "publish-doc" => %w[rdoc] do
+task "publish-doc" => %w[ rdoc ] do
   rubyforge_path = "/var/www/gforge-projects/#{UNIX_NAME}/"
-  sh "scp -r '#{RDOC_DIR}/*' '#{RUBYFORGE_USER}@rubyforge.org:#{rubyforge_path}", :verbose => true
+  sh "scp -r #{RDOC_DIR}/* '#{RUBYFORGE_USER}@rubyforge.org:#{rubyforge_path}'", :verbose => true
 end
 
 desc "Upload package to RubyForge"
-task "publish-packages" => %w[package rubyforge-login] do
+task "publish-packages" => %w[ package rubyforge-login ] do
   cd "pkg" do
     %w[ gem tgz zip ].each do |pkgtype|
       sh "rubyforge add_release #{UNIX_NAME} #{UNIX_NAME} #{PROJECT_VERSION} #{UNIX_NAME}-#{PROJECT_VERSION}.#{pkgtype}"
@@ -259,7 +258,7 @@ task "publish-packages" => %w[package rubyforge-login] do
 end
 
 desc  "Run tests, generate RDoc and create packages."
-task "pre-release" => %w[clobber clean] do
+task "pre-release" => %w[ clobber clean ] do
   puts "Preparing release of #{PROJECT} v#{PROJECT_VERSION}"
   Rake::Task["test"].invoke
   Rake::Task["rdoc"].invoke
@@ -267,10 +266,11 @@ task "pre-release" => %w[clobber clean] do
 end
 
 desc "Publish a new release of #{PROJECT}"
-task "publish" => %w[pre-release] do
+task "publish" => %w[ pre-release ] do
   puts "Uploading doc..."
   Rake::Task["publish-doc"].invoke
   puts "Uploading packages..."
   Rake::Task["publish-packages"].invoke
   puts "release done !"
 end
+

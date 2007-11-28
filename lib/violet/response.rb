@@ -1,20 +1,28 @@
 =begin rdoc
 
-==violet/response.rb
+=violet/response.rb
 
+==Summary
+this module handle servers messages. Main method/class are Response.parse and Response::Base::ServerRsp (well documented).
 
-this module handle servers messages.
 you should only use Response.parse with the server's message (xml) as argument, it returns a ServerRsp instance
 from the corresponding class (see all the ServerRsp subclass).  with a ServerRsp instance you can use :
 
-* r.has_x?        => return +true+ if r has at least one element of name "x", return +false+ otherwhise.
-* r.has_many_xs?  => return +true+ if r has more than one element of name "x", return +false+ otherwhise.
-* r.x             => find the first xml element of name x and return it's text if any, or a hash of it's options
-* r.xs            => find all xml element of name x and return an Array of their text if any, or their options.
-* r.good?         => return +true+ if the response is not an error, +false+ otherwhise.
-* r.bad?          => return +true+ if the response is an error, +false+ otherwhise.
+[ r.has_x? ]
+  return +true+ if r has at least one element of name "x", return +false+ otherwhise.
+[ r.has_many_xs? ]
+  return +true+ if r has more than one element of name "x", return +false+ otherwhise.
+[ r.x ]
+  find the first xml element of name x and return it's text if any, or a hash of it's options
+[ r.x ]
+  find all xml element of name x and return an Array of their text if any, or their options.
+[ r.good? ]
+  return +true+ if the response is not an error, +false+ otherwhise.
+[ r.bad? ]
+  return +true+ if the response is an error, +false+ otherwhise.
 
-=Examples :
+
+==Examples :
     >> rsp = Response.parse('<?xml version="1.0" encoding="UTF-8"?><rsp><blacklist nb="2"/><pseudo name="toto"/><pseudo name="titi"/></rsp>')
     => #<Response::Blacklist:0x2acd8c08f2f8 @xml=<UNDEFINED> ... </>>
     >> rsp.good?
@@ -34,8 +42,9 @@ from the corresponding class (see all the ServerRsp subclass).  with a ServerRsp
     >> rsp.pseudos
     => [{:name=>"toto"}, {:name=>"titi"}]
 
-if you want to access to the REXML::Document object of a ServerRsp you can either use rsp.xml or use
-ServerRsp.get_all method.  you may don't need to use them and only access elements as seen before.
+==Low Level
+
+if you want to access to the REXML::Document object of a ServerRsp you can either use rsp.xml or use ServerRsp#get_all method.
 
 =end
 
@@ -80,16 +89,18 @@ module Response
         self.is_a? BadServerRsp
       end
 
-      # get all xml's element that match name. You can give a block that take a REXML::Element in parameter
-      # (see examples). if no block is given, it return an Array of REXML::Element.
+      # ==Summary
+      # get all xml's element that match name.
       # 
-      # Example 1 : Side effect
-      #     >> rsp = Response.parse('<?xml version="1.0" encoding="UTF-8"?><rsp><langListUser nb="4"/>
-      #         <myLang lang="fr"/>
-      #         <myLang lang="us"/>
-      #         <myLang lang="uk"/>
-      #         <myLang lang="de"/>
-      #         </rsp>')
+      #
+      # ==Arguments
+      # name    : name of the element you want to fetch (see examples)
+      # block   : a block of code that take a REXML::Element in parameter. if no block is given, it return an Array of REXML::Element.
+      #
+      #
+      # ==Examples
+      # <b>Side effect</b>
+      #     >> rsp = Response.parse('<?xml version="1.0" encoding="UTF-8"?><rsp><langListUser nb="4"/><myLang lang="fr"/><myLang lang="us"/><myLang lang="uk"/><myLang lang="de"/></rsp>')
       #     => #<Response::LangListUser:0x2b16c5e17510 @xml=<UNDEFINED> ... </>>
       #     >> rsp.get_all(:myLang) do |e|
       #     >>   puts "you can use '#{e.attribute('lang').value}'"
@@ -100,7 +111,7 @@ module Response
       #     you can use 'de'
       #     => [nil, nil, nil, nil]
       #
-      # Example 2 : usage of returned value
+      # <b>usage of returned value</b>
       #     >> langs = rsp.get_all(:myLang) { |e| e.attribute('lang').value }
       #     => ["fr", "us", "uk", "de"]
       def get_all name
@@ -155,8 +166,6 @@ module Response
 
   #
   # Errors messages from server
-  #
-  # TODO: complete doc => request references
   #
 
 
@@ -235,8 +244,6 @@ module Response
 
   #
   # Infos messages from server
-  #
-  # TODO: complete doc => request references
   #
 
 
@@ -353,12 +360,24 @@ module Response
   class CommandSend < Base::GoodServerRsp; end
 
 
-  # parse given raw (xml text) and return a new ServerRsp from the corresponding class. Violet messages aren't
+  # ==Summary
+  # parse given raw (xml text) and return a new ServerRsp from the corresponding class.
+  #
+  # Violet messages aren't
   # easy to identify, because there is not id. So we have to study the xml content if there are no message
-  # element (easier to detect the response type). this method raise a ProtocolExcepion if it's fail to detect the
+  # element (easier to detect the response type).
+  #
+  #
+  # ==Arguments
+  # the xml response of the Violet Server.
+  #
+  #
+  # ==Exceptions
+  # this method raise a ProtocolExcepion if it's fail to detect the
   # kind of the server's response.
   #
-  # Examples:
+  #
+  # ==Examples
   #     >> rsp = Response.parse('<?xml version="1.0" encoding="UTF-8"?><rsp><rabbitSleep>YES</rabbitSleep></rsp>')
   #     => #<Response::RabbitSleep:0x2b16c5e476e8 @xml=<UNDEFINED> ... </>>
   #     >> rsp.class

@@ -1,6 +1,5 @@
 =begin rdoc
 ==violet/helpers.rb
-TODO
 some handy class/methods and modifications.
 =end
 
@@ -23,12 +22,18 @@ module Helpers
   end
 
 
+  # ==Credits
   # taken from active_support/inflector.rb,
   # see http://rubyforge.org/projects/activesupport
   #
+  #
+  # ==Summary
   # Constantize tries to find a declared constant with the name specified
   # in the string. It raises a NameError when the name is not in CamelCase
   # or is not initialized.
+  #
+  #
+  # ==Examples
   #     "Module".constantize #=> Module
   #     "Class".constantize #=> Class
   def Helpers.constantize(camel_cased_word)

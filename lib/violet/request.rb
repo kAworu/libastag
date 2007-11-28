@@ -1,9 +1,6 @@
 =begin rdoc
 
 ==violet/request.rb
-
-TODO
-
 contains events to send to the server.  Action instances are constants, because they're always the same request,
 but other Event derivated class are used to create objects.
 
@@ -31,11 +28,11 @@ module Request
       end
 
       # it's possible to send multiples events on a single request.
-      # Examples:
-      #     TODO
+      # TODO: write is_compatible_with? / compatible_with to know if add is ok.
       def + other
         EventCollection.new self, other
       end
+
       # to_url has to be overrided
       def to_url
         raise NotImplementedError
@@ -87,7 +84,8 @@ module Request
     require 'cgi'
 
     # create a new Query object with the give parameters.  +serial+ and +token+ parameters should be checked at
-    # a higher level.
+    # a higher level. +event+ parameter is usually an Event object, but you can give any Object that respond to
+    # to_url.
     def initialize(event, serial, token)
       raise ArgumentError.new("first parameter has no 'to_url' method") unless event.respond_to?(:to_url)
       @event, @serial, @token = event, serial, token

@@ -1,7 +1,7 @@
-- rewrite test/test_actions
 - Complete Request module
+- move EvenCollection out of Base
 - Complete Request module doc/test
 
-- Write doc/test for Helpers module
+- Write doc for Helpers module
 - Write doc for VioletAPI module
 

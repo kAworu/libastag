@@ -1,8 +1,13 @@
 #!/usr/bin/ruby
 
 
+def from_this_file_path *args
+  File.join( File.dirname(__FILE__), *args )
+end
 
-require File.join( File.dirname(__FILE__), '..', 'lib', 'violet', 'response.rb' )
+
+require from_this_file_path('..', 'lib', 'violet', 'response.rb')
+
 require 'test/unit'
 
 

@@ -1,10 +1,17 @@
 #!/usr/bin/ruby
 
 
+def from_this_file_path *args
+  File.join( File.dirname(__FILE__), *args )
+end
+
+
+require from_this_file_path('..', 'lib', 'violet', 'helpers.rb')
 
 require 'rexml/document'
-require File.join( File.dirname(__FILE__), '..', 'lib', 'violet', 'helpers.rb' )
 require 'test/unit'
+
+
 
 class HelpersTest < Test::Unit::TestCase
 

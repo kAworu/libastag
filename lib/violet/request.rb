@@ -87,6 +87,9 @@ module Request
     # to_url.
     def initialize h
       raise ArgumentError.new('event parameter has no "to_url" method or is empty') unless h[:event] and h[:event].respond_to?(:to_url)
+      raise ArgumentError.new('need a :serial') unless h[:serial]
+      raise ArgumentError.new('need a :token' ) unless h[:token]
+
       @event, @serial, @token = h[:event], h[:serial], h[:token]
     end
 
@@ -97,7 +100,7 @@ module Request
 
     # TODO
     def send! response_type=nil
-      # rescue ?
+      # TODO: rescue ?
       rsp = open(self.to_url) { |rsp| rsp.read }
       if response_type == :xml then rsp else Response.parse(rsp) end
     end
@@ -130,23 +133,36 @@ module Request
     require 'cgi'
     MIN_SPEED = 1
     MAX_SPEED = 32000
-    DEFAULT_SPEED = 100
 
     MIN_PITCH = 1
     MAX_PITCH = 32000
-    DEFAULT_PITCH = 100
 
 
     def initialize h
       raise ArgumentError.new('no text given') unless h[:tts]
       @h = h.dup
 
-      raise ArgumentError.new("speed values must be between #{MIN_SPEED} and #{MAX_SPEED}") unless (@h[:speed] ||= DEFAULT_SPEED).to_i.between?(MIN_SPEED,MAX_SPEED)
-      raise ArgumentError.new("pitch values must be between #{MIN_PITCH} and #{MAX_PITCH}") unless (@h[:pitch] ||= DEFAULT_PITCH).to_i.between?(MIN_PITCH,MAX_PITCH)
+      [:speed,:pitch].each do |p|
+        min = Helpers.constantize("#{self.class}::MIN_#{p.to_s.upcase}")
+        max = Helpers.constantize("#{self.class}::MAX_#{p.to_s.upcase}")
+
+        unless @h[p].to_i.between?(min,max)
+          raise ArgumentError.new("#{p} values must be between #{min} and #{max}")
+        else
+          @h[p] = @h[p].to_i
+        end if @h[p]
+      end
+
+      # TODO rescue ?
+      @h[:tts] = CGI.escape @h[:tts]
     end
 
     def to_url
-      url = [:pitch,:speed].collect { |p| "#{p}=#{@h[p]}" }
+      for p in [:tts,:voice,:speed,:pitch] do
+        (url ||= Array.new) << "#{p}=#{@h[p]}" if @h[p]
+      end
+
+      url.join('&')
     end
   end
 

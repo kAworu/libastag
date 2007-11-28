@@ -20,7 +20,7 @@ require 'open-uri'
 #
 
 t = Thread.new do
-  FakeVioletSrv.start 3000, from_this_file_path('testactions_log.tmp')
+  FakeVioletSrv.start 3000, from_this_file_path('testsend_log.tmp')
 end
 sleep 1 # wait for server start.
 
@@ -49,6 +49,7 @@ class ActionTest < Test::Unit::TestCase
   def test_xml_response
     rsp = Request::Query.new(Request::GET_RABBIT_NAME, GOOD_SERIAL, GOOD_TOKEN).send!(:xml)
     assert_nothing_raised { REXML::Document.new(rsp) }
+    assert_match %r{<rsp>.*</rsp>}im, rsp
   end
 
 

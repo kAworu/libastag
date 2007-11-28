@@ -20,6 +20,26 @@ class ResponseTest < Test::Unit::TestCase
   end
 
 
+  def test_simple_case
+    rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><rabbitSleep>YES</rabbitSleep></rsp>'
+    assert_kind_of Response::Base::ServerRsp, rsp
+  end
+
+
+  def test_get_all
+    rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><rabbitSleep>YES</rabbitSleep></rsp>'
+    assert_equal "YES", rsp.get_all(:rabbitSleep) { |e| e.text }.first
+
+    rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>LINKPREVIEW</message><comment>a comment</comment></rsp>'
+    assert_equal "LINKPREVIEW", rsp.get_all(:message) { |e| e.text }.first
+    assert_equal "a comment", rsp.get_all(:comment) { |e| e.text }.first
+
+    rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><listfriend nb="2"/><friend name="toto"/><friend name="tata"/></rsp>'
+    assert_equal({:nb => "2"}, rsp.get_all(:listfriend) { |e| e.attributes.to_hash }.first)
+    assert_equal [{:name => "toto"},{:name => "tata"}], rsp.get_all(:friend) { |e| e.attributes.to_hash }
+  end
+
+
   def test_undefined_element
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><rabbitSleep>YES</rabbitSleep></rsp>'
     assert_raise(NameError) { rsp.comment }
@@ -48,27 +68,22 @@ class ResponseTest < Test::Unit::TestCase
 
   def test_accessors_message_and_comment
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>NABCASTNOTSEND</message><comment>Your idmessage is private</comment></rsp>'
-    assert_equal rsp.message, 'NABCASTNOTSEND'
-    assert_equal rsp.comment, 'Your idmessage is private'
+    assert_equal 'NABCASTNOTSEND', rsp.message
+    assert_equal 'Your idmessage is private', rsp.comment 
   end
 
 
   def test_accessors_with_hash
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><listfriend nb="3"/><friend name="toto"/><friend name="tata"/><friend name="titi"/></rsp>'
-    assert_equal rsp.listfriend, {:nb => "3"}
-    assert_equal rsp.friend, {:name => "toto"}
-    assert_equal rsp.friends, [{:name => "toto"}, {:name => "tata"}, {:name => "titi"}]
-    assert_equal rsp.friends.size.to_s, rsp.listfriend[:nb]
+    assert_equal({:nb => "3"}, rsp.listfriend)
+    assert_equal({:name => "toto"}, rsp.friend)
+    assert_equal [{:name => "toto"}, {:name => "tata"}, {:name => "titi"}], rsp.friends
+    assert_equal rsp.listfriend[:nb], rsp.friends.size.to_s
 
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><listreceivedmsg nb="1"/><msg from="toto" title="my message" date="today 11:59" url="broad/001/948.mp3"/></rsp>'
     assert_equal rsp.listreceivedmsg, {:nb => "1"}
-    assert_equal rsp.msg, {
-      :from   => "toto",
-      :title  => "my message",
-      :date   => "today 11:59",
-      :url    => "broad/001/948.mp3"
-    }
-    assert_equal rsp.msgs.size, rsp.listreceivedmsg[:nb].to_i
+    assert_equal({:from => "toto", :title => "my message", :date => "today 11:59", :url => "broad/001/948.mp3"}, rsp.msg)
+    assert_equal rsp.listreceivedmsg[:nb].to_i, rsp.msgs.size
   end
 
   def test_good

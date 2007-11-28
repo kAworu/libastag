@@ -81,7 +81,6 @@ module Request
   # see http://api.nabaztag.com/docs/home.html
   class Query
     require 'open-uri'
-    require 'cgi'
 
     # create a new Query object with the give parameters.  +serial+ and +token+ parameters should be checked at
     # a higher level. +event+ parameter is usually an Event object, but you can give any Object that respond to

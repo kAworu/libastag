@@ -28,7 +28,6 @@ module Request
       end
 
       # it's possible to send multiples events on a single request.
-      # TODO: write is_compatible_with? / compatible_with to know if add is ok.
       def + other
         EventCollection.new self, other
       end
@@ -153,7 +152,6 @@ module Request
         end if @h[p]
       end
 
-      # TODO rescue ?
       @h[:tts] = CGI.escape @h[:tts]
     end
 

@@ -34,8 +34,8 @@ module Helpers
   #
   #
   # ==Examples
-  #     "Module".constantize #=> Module
-  #     "Class".constantize #=> Class
+  #     Helpers.constantize("Module")   #=> Module
+  #     Helpers.constantize("Class")    #=> Class
   def Helpers.constantize(camel_cased_word)
     unless /\A(?:::)?([A-Z]\w*(?:::[A-Z]\w*)*)\z/ =~ camel_cased_word
       raise NameError.new("#{camel_cased_word.inspect} is not a valid constant name!")

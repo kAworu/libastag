@@ -115,9 +115,8 @@ module Response
       #     >> langs = rsp.get_all(:myLang) { |e| e.attribute('lang').value }
       #     => ["fr", "us", "uk", "de"]
       def get_all name
-        name = name.to_s
         # REXML::XPath.match(@xml, element).collect do |e|  <= this one is for a recursive search.
-        @xml.root.elements.collect(name) do |e|
+        @xml.root.elements.collect(name.to_s) do |e|
           if block_given? then yield(e) else e end
         end
       end
@@ -390,7 +389,7 @@ module Response
   #
   def Response.parse raw
     tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
-    klassname = if raw =~ /<rsp>[\t\n ]*<\/rsp>/i
+    klassname = if raw =~ %r|<rsp>\s*</rsp>|i
                   'EmptyServerRsp'
                 elsif tmp.has_message?
                   /^#{tmp.message}$/i

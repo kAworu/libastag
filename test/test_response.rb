@@ -107,13 +107,15 @@ class ResponseTest < Test::Unit::TestCase
 
   def test_EmptyServerRsp
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp></rsp>'
+    rsp2 = Response.parse %{<?xml version="1.0" encoding="UTF-8"?><rsp>  \n \n </rsp>}
 
     assert_instance_of Response::EmptyServerRsp, rsp
+    assert_instance_of Response::EmptyServerRsp, rsp2
     assert !rsp.good?
     assert !rsp.bad?
   end
 
-
+  
   def test_LinkPreview
     rsp = Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>LINKPREVIEW</message><comment>a comment</comment></rsp>'
     assert_instance_of  Response::LinkPreview, rsp

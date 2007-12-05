@@ -14,4 +14,7 @@ require 'test/unit'
 
 
 class RequestTest < Test::Unit::TestCase
+  def test_dummy_test
+    # still todo :)
+  end
 end

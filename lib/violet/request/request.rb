@@ -8,7 +8,7 @@ but other Event derivated class are used to create objects.
 
 module Request
   require File.join( File.dirname(__FILE__), '..', 'response', 'response.rb' )
-  require File.join( File.dirname(__FILE__), '..', 'helpers',  'helpers.rb'  )
+ # require File.join( File.dirname(__FILE__), '..', 'helpers',  'helpers.rb'  )
 
   # the VioletAPI url where we send request.
   API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp'
@@ -95,7 +95,7 @@ module Request
 
     # return the complet url: API_URL with the +serial+, +token+ and options.
     def to_url
-      API_URL+'?' << [ "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
+      "#{API_URL}?" << [ "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
     end
 
     # send the query to the server. it return a ServerRsp object from the corresponding class, or the raw xml
@@ -173,9 +173,10 @@ module Request
 
   class IdMessage < Base::Event
     def initialize h
-      raise ArgumentError.new('no :idmessage given')                unless h[:idmessage]
-      raise ArgumentError.new(':idmessage must be greater than 0')  unless h[:idmessage].to_i > 0
       @h = h.dup
+
+      raise ArgumentError.new('no :idmessage given')                unless @h[:idmessage]
+      raise ArgumentError.new(':idmessage must be greater than 0')  unless @h[:idmessage].to_i > 0
       @h[:idmessage] = @h[:idmessage].to_i
     end
 
@@ -188,65 +189,86 @@ module Request
     end
   end
 
-  
 
+
+  # at time 1.2 do
+  #   move <right|left|both> [ear[s]] <backward|forward> [of] degrees <0-180>
+  #   set <bottom|left|middle|right|top|all> [led[s]] to <red|green|blue|yellow|magenta|cyan|white|rgb([0-255],[0-255],[0-255])>
+  # end
+  # TODO: evaluation after creation
   class Choregraphy < Base::Event
-
-    def initialize(str=nil, &block)
-      @chor, @time = Array.new, 0
-      __choreval__(block) if block_given?
-      __choreval__(str) unless str.nil?
-    end
-    alias :create :initialize
 
     class BadChorDesc < Exception; end
     EarCommandStruct = Struct.new :element, :direction, :angle, :time
     LedCommandStruct = Struct.new :element, :color,             :time
 
+    def initialize(*code, &block)
+      @code = if block_given? then [block] else code end
+      __choreval__
+    end
+
     def set command
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(LedCommandStruct)
+      raise BadChorDesc.new('need an element')                   unless command.element
+      raise BadChorDesc.new('wrong element')                    unless command.element == :all or command.element.between?(Leds::Positions::BOTTOM,Leds::Positions::TOP)
       raise BadChorDesc.new('need a time')                      unless command.time
-      raise BadChorDesc.new('need a element')                   unless command.element
+      raise BadChorDesc.new('time must be >= than zero')        unless command.time.to_i >= 0
       raise BadChorDesc.new('need a color')                     unless command.color
+      raise BadChorDesc.new('wrong size for rgb color array')   unless command.color.size == 3
+      command.color.collect! do |c|
+        raise BadChorDesc.new('color code must be betwen 0 and 255') unless c.to_i.between?(0,255)
+        c.to_i
+      end
 
       template = '%s,led,%s,%s'
       command.color = command.color.join(',')
 
       if command.element == :all
-        (Leds::Positions.constants - 'ALL').each do |cste_name|
+        (Leds::Positions.constants - ['ALL']).each do |cste_name|
           cste = Helpers.constantize "#{self.class}::Leds::Positions::#{cste_name}"
-          @chor << template % [ command.time, cste, command.color ]
+          @chor << template % [ command.time.to_i, cste, command.color ]
         end
       else
-          @chor << template % [ command.time,  command.element, command.color ]
+          @chor << template % [ command.time.to_i,  command.element, command.color ]
       end
     end
 
     def move command
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(EarCommandStruct)
       raise BadChorDesc.new('need a time')                      unless command.time
-      raise BadChorDesc.new('need a angle')                     unless command.angle
+      raise BadChorDesc.new('time must be >= zero')             unless command.time.to_i >= 0
+      raise BadChorDesc.new('need an angle')                     unless command.angle
+      raise BadChorDesc.new('angle must be between 0 and 180')  unless (0..180).include?(command.angle)
       raise BadChorDesc.new('need a direction')                 unless command.direction
-      raise BadChorDesc.new('need a element')                   unless command.element
+      raise BadChorDesc.new('wrong direction')                  unless command.direction.between?(Ears::Directions::FORWARD,Ears::Directions::BACKWARD)
+      raise BadChorDesc.new('need an element')                   unless command.element
+      raise BadChorDesc.new('wrong element')                    unless command.element == :both or command.element.between?(Ears::Positions::RIGHT,Ears::Positions::LEFT)
 
       template = '%s,motor,%s,%s,0,%s'
 
       if command.element == :both
-        @chor << template % [ command.time, Ears::Positions::LEFT,  command.angle, command.direction ]
-        @chor << template % [ command.time, Ears::Positions::RIGHT, command.angle, command.direction ]
+        # we don't know, maybe your rabbit has more than two ears :)
+        (Ears::Positions.constants - ['BOTH']).each do |cste_name|
+          cste = Helpers.constantize "#{self.class}::Ears::Positions::#{cste_name}"
+          @chor << template % [ command.time.to_i, cste,  command.angle, command.direction ]
+        end
       else
-        @chor << template % [ command.time,  command.element, command.angle, command.direction ]
+        @chor << template % [ command.time.to_i,  command.element, command.angle, command.direction ]
       end
     end
 
     private
 
     # String of block evaluator
-    def __choreval__(chor)
-      if chor.is_a?(Proc)
-        instance_eval(&chor)
-      else
-        instance_eval(chor.to_s, __FILE__, __LINE__)
+    def __choreval__
+      @chor, @time = Array.new, 0
+
+      @code.each do |code|
+        if code.is_a?(Proc)
+          instance_eval(&code)
+        else
+          instance_eval(code.to_s, __FILE__, __LINE__)
+        end
       end
     end
 
@@ -256,8 +278,6 @@ module Request
         define_method(m) { |args| args }
       end
     end
-
-    bubble :of, :ear, :ears
 
     # set the time and call block if any
     def at time_formated
@@ -277,6 +297,7 @@ module Request
         method("__#{m}_for_#{target}__").call(arg)
       end
     end
+
 
     module Leds
       module Colors
@@ -299,27 +320,29 @@ module Request
       end
     end
 
-    # led's dummy methods setup
-    bubble :to, :led, :leds
+    # leds dummy methods setup
+    bubble :led, :leds
+
+    # make possible to write
+    #   my_color = [1,2,3]
+    #   set all to my_color
+    # and also
+    #   set all to 1,2,3
+    def to *args
+      if args.first.is_a?(Array) then rgb(*(args.first)) else rgb(*args) end
+    end
 
     # check values and convert to array
-    def rgb(r, g, b)
-      ary = [r,g,b].collect do |c|
-        c = c.to_i
-        raise BadChorDesc.new('color code must be betwen 0 and 255') unless c.between?(0,255)
-        c
-      end
-
+    def rgb(*color)
       command = LedCommandStruct.new
-      command.time  = @time
-      command.color = ary
+      command.time, command.color  = @time, color
       command
     end
 
     # generate colors methods
     Leds::Colors.constants.each do |cste_name|
       cste = Helpers.constantize "#{self}::Leds::Colors::#{cste_name}"
-      define_method(cste_name.downcase) { rgb(*cste) }
+      define_method(cste_name.downcase) { cste }
     end
 
     # generate leds positions methods
@@ -335,16 +358,11 @@ module Request
     end
 
 
-
-    # at time 1.2 do
-    #   move right|left|both [ear(s)] backward|forward [of] degrees [0-180]
-    #   set bottom|left|middle|right|top|all [led(s)] [to] red|green|blue|yellow|magenta|cyan|white|rgb([0-255],[0-255],[0-255])
-    # end
-
     module Ears
       module Positions
-        LEFT  = 1
         RIGHT = 0
+        LEFT  = 1
+        BOTH  = :both
       end
       module Directions
         FORWARD  = 0
@@ -352,42 +370,38 @@ module Request
       end
     end
 
+    # ears dummy methods setup
+    bubble :of, :ear, :ears
+
     def degrees angle
       angle = angle.to_i
-      raise BadChorDesc.new('angle must be between 0 and 180') unless (0..180).include?(angle)
       command = EarCommandStruct.new
-      command.angle = angle
-      command.time = @time
+      command.angle, command.time = angle, @time
       command
     end
 
-    def backward command
-      command.direction = 1
-      command
+    Ears::Directions.constants.each do |cste_name|
+      cste = Helpers.constantize "#{self}::Ears::Directions::#{cste_name}"
+      define_method(cste_name.downcase) do |command|
+        command.direction = cste
+        command
+      end
     end
 
-    def forward command
-      command.direction = 0
-      command
-    end
+    Ears::Positions.constants.each do |cste_name|
+      cste = Helpers.constantize "#{self}::Ears::Positions::#{cste_name}"
+      # right and left are specials cases
+      cste_name = "__#{cste_name}_for_ear__" if cste_name =~ /^(LEFT|RIGHT)$/
 
-    def __left_for_ear__(command)
-      command.element = 1
-      command
-    end
-
-    def __right_for_ear__(command)
-      command.element = 0
-      command
-    end
-
-
-    def both command
-      command.element = :both
-      command
+      define_method(cste_name.downcase) do |command|
+        command.element = cste
+        command
+      end
     end
 
   end
+
+
 
   #
   # Actions list.

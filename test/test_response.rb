@@ -6,7 +6,7 @@ def from_this_file_path *args
 end
 
 
-require from_this_file_path('..', 'lib', 'violet', 'response.rb')
+require from_this_file_path('..', 'lib', 'violet', 'response', 'response.rb')
 
 require 'test/unit'
 

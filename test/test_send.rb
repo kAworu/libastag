@@ -7,8 +7,8 @@ end
 
 
 require from_this_file_path('fake_violet_srv.rb')
-require from_this_file_path('..', 'lib', 'violet', 'request.rb')
-require from_this_file_path('..', 'lib', 'violet', 'response.rb')
+require from_this_file_path('..', 'lib', 'violet', 'request',  'request.rb' )
+require from_this_file_path('..', 'lib', 'violet', 'response', 'response.rb')
 
 require 'test/unit'
 require 'open-uri'

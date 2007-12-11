@@ -7,7 +7,8 @@ but other Event derivated class are used to create objects.
 =end
 
 module Request
-  require File.join( File.dirname(__FILE__), 'response.rb' )
+  require File.join( File.dirname(__FILE__), '..', 'response', 'response.rb' )
+  require File.join( File.dirname(__FILE__), '..', 'helpers',  'helpers.rb'  )
 
   # the VioletAPI url where we send request.
   API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp'

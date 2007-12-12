@@ -33,7 +33,7 @@ class ActionTest < Test::Unit::TestCase
   BAD_SERIAL    = '1X34U67890AB'
   BAD_TOKEN     = '123456789A'
 
-  LOCAL_URI     = 'http://localhost:3000/api.jsp?'
+  LOCAL_URI     = 'http://localhost:3000/api.jsp'
 
   # Hacky ! yes !
   Request::API_URL = LOCAL_URI
@@ -42,6 +42,25 @@ class ActionTest < Test::Unit::TestCase
   def test_fake_server_is_up
     assert_nothing_raised do
       open(LOCAL_URI) { }
+    end
+  end
+
+
+  def test_query_new
+    assert_nothing_raised { Request::Query.new :token => GOOD_TOKEN, :serial => GOOD_SERIAL, :event => Request::GET_SIGNATURE }
+    assert_raise(ArgumentError) { Request::Query.new :serial => GOOD_SERIAL, :event => Request::GET_SIGNATURE }
+    assert_raise(ArgumentError) { Request::Query.new :token => GOOD_TOKEN, :event => Request::GET_SIGNATURE }
+    assert_raise(ArgumentError) { Request::Query.new :token => GOOD_TOKEN, :serial => GOOD_SERIAL }
+  end
+
+
+  def test_query_to_url
+    [ Request::GET_RABBIT_NAME,
+      Request::GET_FRIENDS_LIST,
+      Request::GET_EARS_POSITION
+    ].each do |e|
+      q = Request::Query.new :event => e, :serial => GOOD_SERIAL, :token => GOOD_TOKEN
+      assert_equal "#{Request::API_URL}?token=#{GOOD_TOKEN}&sn=#{GOOD_SERIAL}&#{e.to_url}", q.to_url
     end
   end
 

@@ -67,7 +67,7 @@ module Request
 
       # override Event#to_url.
       def to_url
-        @childrens.collect { |e| e.to_url }.join('&')
+        @childrens.collect { |e| e.to_url }.sort.join('&')
       end
     end
 
@@ -203,13 +203,13 @@ module Request
     LedCommandStruct = Struct.new :element, :color,             :time
 
     def initialize(*code, &block)
-      @code = if block_given? then [block] else code end
+      @code = if block_given? then block else code end
       __choreval__
     end
 
     def set command
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(LedCommandStruct)
-      raise BadChorDesc.new('need an element')                   unless command.element
+      raise BadChorDesc.new('need an element')                  unless command.element
       raise BadChorDesc.new('wrong element')                    unless command.element == :all or command.element.between?(Leds::Positions::BOTTOM,Leds::Positions::TOP)
       raise BadChorDesc.new('need a time')                      unless command.time
       raise BadChorDesc.new('time must be >= than zero')        unless command.time.to_i >= 0
@@ -262,7 +262,8 @@ module Request
     # String of block evaluator
     def __choreval__
       @chor, @time = Array.new, 0
-
+      
+      @code = [@code] unless @code.is_a?(Array)
       @code.each do |code|
         if code.is_a?(Proc)
           instance_eval(&code)
@@ -329,7 +330,11 @@ module Request
     # and also
     #   set all to 1,2,3
     def to *args
-      if args.first.is_a?(Array) then rgb(*(args.first)) else rgb(*args) end
+      case  i = args.first
+      when Array then rgb(*i)
+      when LedCommandStruct then i
+      else rgb(*args)
+      end
     end
 
     # check values and convert to array
@@ -342,7 +347,7 @@ module Request
     # generate colors methods
     Leds::Colors.constants.each do |cste_name|
       cste = Helpers.constantize "#{self}::Leds::Colors::#{cste_name}"
-      define_method(cste_name.downcase) { cste }
+      define_method(cste_name.downcase) { rgb(*cste) }
     end
 
     # generate leds positions methods

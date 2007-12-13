@@ -37,6 +37,9 @@ class ChoregraphyTest < Test::Unit::TestCase
       assert_equal [chor.result], Choregraphy.new(&chor.code).to_url
       assert_equal [chor.result, 'chortitle=foo'], Choregraphy.new({:name => :foo},&chor.code).to_url
     end
+    # <bugfix:001>
+    c = Choregraphy.new { set left right off }
+    assert_equal 'chor=10,0,led,1,0,0,0,0,led,3,0,0,0', c.to_url.first
   end
 
 

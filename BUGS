@@ -1,0 +1,10 @@
+=001
+
+==Description
+choregraphy with more than one command don't to_url smoothly.
+
+==Example
+    <"chor=10,0,led,1,0,0,0,0,led,3,0,0,0"> expected but was <"chor=10,0,led,1,0,0,00,led,3,0,0,0">.
+
+==Fix
+fixed, see test/test_request_chor.rb <bugfix:001>

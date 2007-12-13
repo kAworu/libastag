@@ -54,7 +54,7 @@ RDOC_OPTIONS    = [
 LIB_FILES       = Dir["lib/**/*.rb"]
 TEST_FILES      = Dir["test/**/*.rb"]
 
-RDOC_FILES      = %w[ README MIT-LICENSE TODO CHANGES ] + LIB_FILES
+RDOC_FILES      = %w[ README MIT-LICENSE TODO CHANGES BUGS] + LIB_FILES
 DIST_FILES      = %w[ Rakefile ] + LIB_FILES + TEST_FILES + RDOC_FILES
 
 

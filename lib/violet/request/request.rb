@@ -172,12 +172,19 @@ module Request
 
 
   class IdMessage < Base::Event
+    require 'cgi'
+    MIN_IDMESSAGE = 0
+
     def initialize h
       @h = h.dup
 
       raise ArgumentError.new('no :idmessage given')                unless @h[:idmessage]
-      raise ArgumentError.new(':idmessage must be greater than 0')  unless @h[:idmessage].to_i > 0
-      @h[:idmessage] = @h[:idmessage].to_i
+      raise ArgumentError.new(":idmessage must be greater than #{MIN_IDMESSAGE}")  unless @h[:idmessage].to_i > MIN_IDMESSAGE
+
+      @h[:idmessage]    = @h[:idmessage].to_i
+
+      @h[:nabcasttitle] = CGI.escape @h[:nabcasttitle] if @h[:nabcasttitle]
+      @h[:nabcast]      = @h[:nabcast].to_i if @h[:nabcast]
     end
 
     def to_url

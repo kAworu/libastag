@@ -25,7 +25,7 @@ end
 sleep 1 # wait for server start.
 
 
-class ActionTest < Test::Unit::TestCase
+class QueryAndActionTest < Test::Unit::TestCase
   require 'rexml/document'
 
   GOOD_SERIAL   = '1234567890AB'
@@ -60,7 +60,7 @@ class ActionTest < Test::Unit::TestCase
       Request::GET_EARS_POSITION
     ].each do |e|
       q = Request::Query.new :event => e, :serial => GOOD_SERIAL, :token => GOOD_TOKEN
-      assert_equal "#{Request::API_URL}?token=#{GOOD_TOKEN}&sn=#{GOOD_SERIAL}&#{e.to_url}", q.to_url
+      assert_equal "#{Request::API_URL}?sn=#{GOOD_SERIAL}&token=#{GOOD_TOKEN}&#{e.to_url}", q.to_url
     end
   end
 

@@ -241,7 +241,7 @@ module Request
       raise BadChorDesc.new('no choregraphy given') unless @chor
 
       url = Array.new
-      url << "chor=10," + @chor.join unless @chor.nil?
+      url << "chor=10," + @chor.join(',') unless @chor.nil?
       url << "chortitle=#{@name}" unless @name.nil?
       url
     end

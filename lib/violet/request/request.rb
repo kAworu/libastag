@@ -67,7 +67,7 @@ module Request
 
       # override Event#to_url.
       def to_url
-        @childrens.collect { |e| e.to_url }.sort.join('&')
+        @childrens.collect { |e| e.to_url }.flatten
       end
     end
 
@@ -95,7 +95,9 @@ module Request
 
     # return the complet url: API_URL with the +serial+, +token+ and options.
     def to_url
-      "#{API_URL}?" << [ "sn=#{@serial}", "token=#{@token}", @event.to_url ].join('&')
+      opts = @event.to_url
+      if opts.is_a?(Array) then opts = opts.join('&') end
+      "#{API_URL}?" << [ "sn=#{@serial}", "token=#{@token}", opts ].join('&')
     end
 
     # send the query to the server. it return a ServerRsp object from the corresponding class, or the raw xml
@@ -128,7 +130,7 @@ module Request
       url = Array.new
       url << "posleft=#{@h[:posleft].to_i}"   if @h[:posleft]
       url << "posright=#{@h[:posright].to_i}" if @h[:posright]
-      url.join('&')
+      url.sort
     end
   end
 
@@ -167,7 +169,7 @@ module Request
       for key,val in @h
         (url ||= Array.new) << "#{key}=#{val}" if val
       end
-      url.sort.join('&')
+      url.sort
     end
   end
 
@@ -193,7 +195,7 @@ module Request
       @h.each_pair do |key,val|
         url << "#{key}=#{val}" if val
       end
-      url.sort.join('&')
+      url
     end
   end
 
@@ -206,19 +208,54 @@ module Request
   # TODO: evaluation after creation
   class Choregraphy < Base::Event
 
+    # define dummy methods for DSL
+    def self.bubble(*methods)
+      methods.each do |m|
+        define_method(m) { |args| args }
+        private(m.to_sym)
+      end
+    end
+
     class BadChorDesc < Exception; end
     EarCommandStruct = Struct.new :element, :direction, :angle, :time
-    LedCommandStruct = Struct.new :element, :color,             :time
+    LedCommandStruct = Struct.new :elements, :color,             :time
 
-    def initialize(*code, &block)
-      @code = if block_given? then block else code end
+    def initialize(h=Hash.new, &block)
+      @name = h[:name] if h[:name]
+      @code = if block_given? then block else h[:code] end
       __choreval__
+      @chor.sort!
+    end
+
+    # + has the same behaviour that |
+    %w[+ - & |].each do |op|
+      define_method(op) do |other|
+        new_chor = self.chor.method(op).call(other.chor).uniq.sort
+        ret = Choregraphy.new
+        ret.instance_eval { @chor = new_chor } # hacky !
+        ret
+      end
+    end
+
+    def to_url
+      raise BadChorDesc.new('no choregraphy given') unless @chor
+
+      url = Array.new
+      url << "chor=10," + @chor.join unless @chor.nil?
+      url << "chortitle=#{@name}" unless @name.nil?
+      url
+    end
+
+    def == other
+      self.to_url == other.to_url
     end
 
     def set command
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(LedCommandStruct)
-      raise BadChorDesc.new('need an element')                  unless command.element
-      raise BadChorDesc.new('wrong element')                    unless command.element == :all or command.element.between?(Leds::Positions::BOTTOM,Leds::Positions::TOP)
+      raise BadChorDesc.new('need an element')                  unless command.elements
+      command.elements.each do |e|
+        raise BadChorDesc.new('wrong element')                    unless e == :all or e.between?(Leds::Positions::BOTTOM,Leds::Positions::TOP)
+      end
       raise BadChorDesc.new('need a time')                      unless command.time
       raise BadChorDesc.new('time must be >= than zero')        unless command.time.to_i >= 0
       raise BadChorDesc.new('need a color')                     unless command.color
@@ -231,13 +268,19 @@ module Request
       template = '%s,led,%s,%s'
       command.color = command.color.join(',')
 
-      if command.element == :all
-        (Leds::Positions.constants - ['ALL']).each do |cste_name|
-          cste = Helpers.constantize "#{self.class}::Leds::Positions::#{cste_name}"
-          @chor << template % [ command.time.to_i, cste, command.color ]
+      # remove trailling element if all is set
+      command.elements.uniq!
+      command.elements = [:all] if command.elements.include?(:all)
+
+      command.elements.each do |e|
+        if e == :all
+          (Leds::Positions.constants - ['ALL']).each do |cste_name|
+            cste = Helpers.constantize "#{self.class}::Leds::Positions::#{cste_name}"
+            @chor << template % [ command.time.to_i, cste, command.color ]
+          end
+        else
+            @chor << template % [ command.time.to_i,  e, command.color ]
         end
-      else
-          @chor << template % [ command.time.to_i,  command.element, command.color ]
       end
     end
 
@@ -265,6 +308,12 @@ module Request
       end
     end
 
+    # used by operators
+    protected
+    def chor
+      @chor
+    end
+
     private
 
     # String of block evaluator
@@ -278,13 +327,6 @@ module Request
         else
           instance_eval(code.to_s, __FILE__, __LINE__)
         end
-      end
-    end
-
-    # define dummy methods
-    def self.bubble(*methods)
-      methods.each do |m|
-        define_method(m) { |args| args }
       end
     end
 
@@ -348,14 +390,14 @@ module Request
     # check values and convert to array
     def rgb(*color)
       command = LedCommandStruct.new
-      command.time, command.color  = @time, color
+      command.time, command.color  = @time, color[0..2]
       command
     end
 
     # generate colors methods
     Leds::Colors.constants.each do |cste_name|
       cste = Helpers.constantize "#{self}::Leds::Colors::#{cste_name}"
-      define_method(cste_name.downcase) { rgb(*cste) }
+      define_method(cste_name.downcase) { |args| rgb(*cste) }
     end
 
     # generate leds positions methods
@@ -364,8 +406,9 @@ module Request
       # right and left are specials cases
       cste_name = "__#{cste_name}_for_led__" if cste_name =~ /^(LEFT|RIGHT)$/
 
+      cste_name
       define_method(cste_name.downcase) do |command|
-        command.element = cste
+        (command.elements ||= Array.new) << cste
         command
       end
     end
@@ -395,6 +438,7 @@ module Request
 
     Ears::Directions.constants.each do |cste_name|
       cste = Helpers.constantize "#{self}::Ears::Directions::#{cste_name}"
+      cste_name
       define_method(cste_name.downcase) do |command|
         command.direction = cste
         command

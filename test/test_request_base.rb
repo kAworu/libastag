@@ -14,7 +14,7 @@ require 'test/unit'
 
 
 
-class RequestTest < Test::Unit::TestCase
+class RequestBaseTest < Test::Unit::TestCase
   include Request
 
   class EventTestFake < Base::Event
@@ -71,7 +71,7 @@ class RequestTest < Test::Unit::TestCase
 
     assert_nothing_raised { all = one + two + three }
 
-    expected_uri = "#{one.to_url}&#{two.to_url}&#{three.to_url}"
+    expected_uri = [ one.to_url, two.to_url, three.to_url ]
     assert_equal expected_uri, all.to_url
   end
 end

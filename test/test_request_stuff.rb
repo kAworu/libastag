@@ -46,9 +46,9 @@ class RequestStuffTest < Test::Unit::TestCase
 
 
   def test_TtsMessage_new
-    assert_equal 0,     TtsMessage::MIN_PITCH
+    assert_equal 1,     TtsMessage::MIN_PITCH
     assert_equal 32000, TtsMessage::MAX_PITCH
-    assert_equal 0,     TtsMessage::MIN_PITCH
+    assert_equal 1,     TtsMessage::MIN_PITCH
     assert_equal 32000, TtsMessage::MAX_PITCH
 
     assert_raise(ArgumentError) { TtsMessage.new }
@@ -101,7 +101,7 @@ class RequestStuffTest < Test::Unit::TestCase
 
 
   def test_IdMessage_new
-    assert_equal 0, IdMessage::MIN_IDMESSAGE
+    assert_equal 1, IdMessage::MIN_IDMESSAGE
 
     assert_raise(ArgumentError) { IdMessage.new }
     assert_raise(ArgumentError) { IdMessage.new :idmessage => (IdMessage::MIN_IDMESSAGE)-1 }

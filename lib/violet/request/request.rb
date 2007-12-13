@@ -95,7 +95,7 @@ module Request
 
     # return the complet url: API_URL with the +serial+, +token+ and options.
     def to_url
-      "#{API_URL}?" << [ "token=#{@token}", "sn=#{@serial}", @event.to_url ].join('&')
+      "#{API_URL}?" << [ "sn=#{@serial}", "token=#{@token}", @event.to_url ].join('&')
     end
 
     # send the query to the server. it return a ServerRsp object from the corresponding class, or the raw xml
@@ -159,27 +159,28 @@ module Request
       end
 
       # to have a well formatted url
-      @h[:tts] = CGI.escape @h[:tts]
+      @h[:tts]          = CGI.escape @h[:tts]
+      @h[:nabcasttitle] = CGI.escape @h[:nabcasttitle] if @h[:nabcasttitle]
     end
 
     def to_url
       for key,val in @h
         (url ||= Array.new) << "#{key}=#{val}" if val
       end
-      url.join('&')
+      url.sort.join('&')
     end
   end
 
 
   class IdMessage < Base::Event
     require 'cgi'
-    MIN_IDMESSAGE = 0
+    MIN_IDMESSAGE = 1
 
     def initialize h
       @h = h.dup
 
       raise ArgumentError.new('no :idmessage given')                unless @h[:idmessage]
-      raise ArgumentError.new(":idmessage must be greater than #{MIN_IDMESSAGE}")  unless @h[:idmessage].to_i > MIN_IDMESSAGE
+      raise ArgumentError.new(":idmessage must be greater than #{MIN_IDMESSAGE}")  unless @h[:idmessage].to_i >= MIN_IDMESSAGE
 
       @h[:idmessage]    = @h[:idmessage].to_i
 
@@ -192,7 +193,7 @@ module Request
       @h.each_pair do |key,val|
         url << "#{key}=#{val}" if val
       end
-      url.join('&')
+      url.sort.join('&')
     end
   end
 
@@ -549,3 +550,4 @@ module Request
   SET_RABBIT_AWAKE = Action.new 14
 
 end # module Request
+

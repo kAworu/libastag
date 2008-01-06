@@ -75,16 +75,20 @@ module Request
 
 
 
-  # this class is used to "translate" our Events into URLs.
-  # Examples:
-  #     TODO
+  # this class is used to "translate" our Events into URLs. a query contains an event to send and the serial/token
+  # of the target Rabbit. That way, you can send the same event to many nabaztag easily.
+  #
   # see http://api.nabaztag.com/docs/home.html
+  #
+  # Examples:
+  #  q = Query.new :token => "my_token", :serial => "my_serial", :event => GET_RABBIT_NAME # =>  #<Request::Query:0x2aaaaaee10b8 @event=#<Request::Action:0x2b74bb47f828 @id=10>, @token="my_token", @serial="my_serial">
   class Query
     require 'open-uri'
 
     # create a new Query object with the give parameters.  +serial+ and +token+ parameters should be checked at
     # a higher level. +event+ parameter is usually an Event object, but you can give any Object that respond to
-    # to_url.
+    # to_url, it should return a string that contains some GET parameters like "foo=bar&oni=2", or an array of
+    # GET options like [ "foo=bar", "oni=2" ].
     def initialize h
       raise ArgumentError.new('event parameter has no "to_url" method or is empty') unless h[:event] and h[:event].respond_to?(:to_url)
       raise ArgumentError.new('need a :serial') unless h[:serial]
@@ -115,10 +119,20 @@ module Request
 
 
 
+  # SetEarsPosition events change your rabbit's ears positions.
+  # you can set left ear position, or right ear position, or both.
+  #
+  # Examples:
+  #     SetEarsPosition.new :posleft => 12                 # => #<Request::SetEarsPosition:0x2ad0b2c79680 @h={:posleft=>12}>
+  #     SetEarsPosition.new :posright => 1                 # => #<Request::SetEarsPosition:0x2ad0b2c70260 @h={:posright=>1}>
+  #     SetEarsPosition.new :posright => 5, :posleft => 5  # => #<Request::SetEarsPosition:0x2ad0b2c5e330 @h={:posleft=>5, :posright=>5}>
   class SetEarsPosition < Base::Event
     MIN_POS = 0
     MAX_POS = 16
 
+    # constructor.
+    # take an hash in parameter, with +:posright+ and/or +:posleft+ keys.
+    # values should be between MIN_POS and MAX_POS.
     def initialize h
       @h = h.dup
       raise ArgumentError.new('at least :posright or :posleft must be set')             unless @h[:posleft] or @h[:posright]
@@ -139,10 +153,10 @@ module Request
   class TtsMessage < Base::Event
     require 'cgi'
     MIN_SPEED = 1
-    MAX_SPEED = 32000
+    MAX_SPEED = 32_000
 
     MIN_PITCH = 1
-    MAX_PITCH = 32000
+    MAX_PITCH = 32_000
 
 
     def initialize h
@@ -205,7 +219,6 @@ module Request
   #   move <right|left|both> [ear[s]] <backward|forward> [of] degrees <0-180>
   #   set <bottom|left|middle|right|top|all> [led[s]] to <red|green|blue|yellow|magenta|cyan|white|rgb([0-255],[0-255],[0-255])>
   # end
-  # TODO: evaluation after creation
   class Choregraphy < Base::Event
 
     # define dummy methods for DSL
@@ -216,7 +229,7 @@ module Request
       end
     end
 
-    class BadChorDesc < Exception; end
+    class BadChorDesc < StandardError; end
     EarCommandStruct = Struct.new :element, :direction, :angle, :time
     LedCommandStruct = Struct.new :elements, :color,             :time
 
@@ -237,6 +250,10 @@ module Request
       end
     end
 
+    def == other
+      self.to_url == other.to_url
+    end
+
     def to_url
       raise BadChorDesc.new('no choregraphy given') unless @chor
 
@@ -246,15 +263,11 @@ module Request
       url
     end
 
-    def == other
-      self.to_url == other.to_url
-    end
-
     def set command
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(LedCommandStruct)
       raise BadChorDesc.new('need an element')                  unless command.elements
       command.elements.each do |e|
-        raise BadChorDesc.new('wrong element')                    unless e == :all or e.between?(Leds::Positions::BOTTOM,Leds::Positions::TOP)
+        raise BadChorDesc.new('wrong element')                  unless e == :all or e.between?(Leds::Positions::BOTTOM,Leds::Positions::TOP)
       end
       raise BadChorDesc.new('need a time')                      unless command.time
       raise BadChorDesc.new('time must be >= than zero')        unless command.time.to_i >= 0
@@ -288,11 +301,11 @@ module Request
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(EarCommandStruct)
       raise BadChorDesc.new('need a time')                      unless command.time
       raise BadChorDesc.new('time must be >= zero')             unless command.time.to_i >= 0
-      raise BadChorDesc.new('need an angle')                     unless command.angle
+      raise BadChorDesc.new('need an angle')                    unless command.angle
       raise BadChorDesc.new('angle must be between 0 and 180')  unless (0..180).include?(command.angle)
       raise BadChorDesc.new('need a direction')                 unless command.direction
       raise BadChorDesc.new('wrong direction')                  unless command.direction.between?(Ears::Directions::FORWARD,Ears::Directions::BACKWARD)
-      raise BadChorDesc.new('need an element')                   unless command.element
+      raise BadChorDesc.new('need an element')                  unless command.element
       raise BadChorDesc.new('wrong element')                    unless command.element == :both or command.element.between?(Ears::Positions::RIGHT,Ears::Positions::LEFT)
 
       template = '%s,motor,%s,%s,0,%s'
@@ -465,6 +478,7 @@ module Request
   #
   # see http://api.nabaztag.com/docs/home.html#getinfo
   #
+
 
   # actions are used to retrieve informations about the Nabaztag or the Nabaztag's owners.
   # see constants of Request module, all Action are Request constant that begin with GET or

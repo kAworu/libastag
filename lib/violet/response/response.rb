@@ -54,7 +54,7 @@ module Response
   # ProtocolExcepion are raised if server return a unknown response.
   #
   # see http://api.nabaztag.com/docs/home.html#messages
-  class ProtocolExcepion < Exception; end
+  class ProtocolExcepion < StandardError; end
 
 
   # contains some basic stuff, abstract class etc. they're used internaly and you should not access this module.

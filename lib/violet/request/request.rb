@@ -151,7 +151,6 @@ module Request
 
   # handle encoding Foo to UTF8 should be done at higher level ?
   class TtsMessage < Base::Event
-    require 'cgi'
     MIN_SPEED = 1
     MAX_SPEED = 32_000
 
@@ -175,8 +174,8 @@ module Request
       end
 
       # to have a well formatted url
-      @h[:tts]          = CGI.escape @h[:tts]
-      @h[:nabcasttitle] = CGI.escape @h[:nabcasttitle] if @h[:nabcasttitle]
+      @h[:tts]          = URI.escape @h[:tts]
+      @h[:nabcasttitle] = URI.escape @h[:nabcasttitle] if @h[:nabcasttitle]
     end
 
     def to_url
@@ -189,7 +188,6 @@ module Request
 
 
   class IdMessage < Base::Event
-    require 'cgi'
     MIN_IDMESSAGE = 1
 
     def initialize h
@@ -200,7 +198,7 @@ module Request
 
       @h[:idmessage]    = @h[:idmessage].to_i
 
-      @h[:nabcasttitle] = CGI.escape @h[:nabcasttitle] if @h[:nabcasttitle]
+      @h[:nabcasttitle] = URI.escape @h[:nabcasttitle] if @h[:nabcasttitle]
       @h[:nabcast]      = @h[:nabcast].to_i if @h[:nabcast]
     end
 

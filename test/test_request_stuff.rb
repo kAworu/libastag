@@ -15,7 +15,6 @@ require 'test/unit'
 
 
 class RequestStuffTest < Test::Unit::TestCase
-  require 'cgi'
   include Request
 
   def test_SetEarsPosition_new
@@ -71,7 +70,7 @@ class RequestStuffTest < Test::Unit::TestCase
     e     = nil
     tts   = 'Hello world'
     assert_nothing_raised { e = TtsMessage.new :tts => tts }
-    assert_equal ["tts=#{CGI.escape(tts)}"], e.to_url
+    assert_equal ["tts=#{URI.escape(tts)}"], e.to_url
 
     pitch = 12
     speed = 11.1
@@ -80,7 +79,7 @@ class RequestStuffTest < Test::Unit::TestCase
                             :speed  => speed,
                             :pitch  => pitch
     end
-    assert_equal ["pitch=#{pitch}","speed=#{speed.to_i}","tts=#{CGI.escape(tts)}"], e.to_url
+    assert_equal ["pitch=#{pitch}","speed=#{speed.to_i}","tts=#{URI.escape(tts)}"], e.to_url
   end
 
 
@@ -95,7 +94,7 @@ class RequestStuffTest < Test::Unit::TestCase
       t = TtsMessage.new :tts => msg, :nabcast => 12, :nabcasttitle => title, :pitch => 42, :speed => 120
     end
 
-    expected = ['nabcast=12',"nabcasttitle=#{CGI.escape(title)}",'pitch=42','speed=120',"tts=#{CGI.escape(msg)}"]
+    expected = ['nabcast=12',"nabcasttitle=#{URI.escape(title)}",'pitch=42','speed=120',"tts=#{URI.escape(msg)}"]
     assert_equal expected, t.to_url
   end
 
@@ -117,6 +116,6 @@ class RequestStuffTest < Test::Unit::TestCase
     assert_equal ['idmessage=1337'], IdMessage.new(:idmessage => id).to_url
 
     i = IdMessage.new :idmessage => id, :nabcast => nabcast, :nabcasttitle => title
-    assert_equal [ 'idmessage=1337', "nabcast=#{nabcast}", "nabcasttitle=#{CGI.escape(title)}"], i.to_url
+    assert_equal [ 'idmessage=1337', "nabcast=#{nabcast}", "nabcasttitle=#{URI.escape(title)}"], i.to_url
   end
 end

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'libastag'
+require File.join( File.dirname(__FILE__), '..', 'lib', 'violet', 'request.rb' )
 
 
 class String
@@ -65,7 +65,8 @@ q = Request::Query.new  :token  => infos.first,
                         :serial => infos.last,
                         :event  => c
 
+debug { puts q.inspect }
 rsp = q.send!
 debug { puts rsp }
 
-puts (rsp.good? ? 'OK ! sended !' : 'Woaw. pas glop.')
+puts (rsp.good? ? 'OK ! sended !' : 'Woaw. arg.')

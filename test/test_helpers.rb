@@ -1,12 +1,10 @@
 #!/usr/bin/ruby
 
-
-def from_this_file_path *args
-  File.join( File.dirname(__FILE__), *args )
-end
+MY_PATH = File.join( File.dirname(__FILE__), '..', 'lib', 'violet' )
+$:.unshift(MY_PATH) unless $:.include?(MY_PATH)
 
 
-require from_this_file_path('..', 'lib', 'violet', 'helpers.rb')
+require 'helpers.rb'
 
 require 'rexml/document'
 require 'test/unit'

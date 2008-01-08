@@ -46,10 +46,14 @@ to install libastag's gem :
 
 
 
-==Irb Examples
+==Examples
+
+=irb
 TODO
 
-
+=Script
+examples/ directory of the project has several examples:
+[morse.rb] send your name in morse to your rabbit.
 
 ==Other Nabastag related Ruby projects
 

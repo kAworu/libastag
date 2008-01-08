@@ -3,8 +3,9 @@
 some handy class/methods and modifications.
 =end
 
+require 'rexml/document'
+
 module Helpers
-  require 'rexml/document'
 
 
   # REXML::Attributes#to_hash seems to be broken.

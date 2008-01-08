@@ -1,10 +1,14 @@
 
-require File.join( File.dirname(__FILE__), 'violet', 'response.rb' )
-require File.join( File.dirname(__FILE__), 'violet', 'request.rb'  )
+$:.unshift(File.dirname(__FILE__)) unless $:.include?(File.dirname(__FILE__)) or $:.include?(File.expand_path(File.dirname(__FILE__)))
+
+
 
 # Handy class/methods to control a Nabastag.
 module Libastag
   VERSION = '0.0.2'
+
+  require 'violet/response.rb'
+  require 'violet/request.rb'
 
   # this class store all attribute of a Nabaztag.
   # it receive events and  retrieve information

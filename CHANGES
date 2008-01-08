@@ -1,7 +1,7 @@
 ==v0.0.2
-- Worked on request.rb, added SetEarsPosition, TtsMessage, IdMessage and Choregraphy class.
+- Worked on request.rb, added SetEarsPosition, TtsMessage, IdMessage and Choregraphy class, doc, and tests.
 - Added Choregraphy Domain Specific Language.
-- unit tests for new Request class
+- added an example for Choregraphy script.
 
 
 ==v0.0.1

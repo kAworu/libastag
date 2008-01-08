@@ -48,8 +48,11 @@ if you want to access to the REXML::Document object of a ServerRsp you can eithe
 
 =end
 
+$:.unshift(File.dirname(__FILE__)) unless $:.include?(File.dirname(__FILE__)) or $:.include?(File.expand_path(File.dirname(__FILE__)))
+
+require 'helpers.rb'
+
 module Response
-  require File.join( File.dirname(__FILE__), 'helpers.rb' )
 
   # ProtocolExcepion are raised if server return a unknown response.
   #

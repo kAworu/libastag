@@ -6,9 +6,13 @@ but other Event derivated class are used to create objects.
 
 =end
 
+$:.unshift(File.dirname(__FILE__)) unless $:.include?(File.dirname(__FILE__)) or $:.include?(File.expand_path(File.dirname(__FILE__)))
+
+require 'response.rb'
+require 'helpers.rb'
+
+
 module Request
-  require File.join( File.dirname(__FILE__), 'response.rb' )
-  require File.join( File.dirname(__FILE__), 'helpers.rb'  )
 
   # the VioletAPI url where we send request.
   API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp'
@@ -131,8 +135,7 @@ module Request
     MAX_POS = 16
 
     # constructor.
-    # take an hash in parameter, with +:posright+ and/or +:posleft+ keys.
-    # values should be between MIN_POS and MAX_POS.
+    # take an hash in parameter, with +:posright+ and/or +:posleft+ keys. values should be between MIN_POS and MAX_POS.
     def initialize h
       @h = h.dup
       raise ArgumentError.new('at least :posright or :posleft must be set')             unless @h[:posleft] or @h[:posright]
@@ -149,7 +152,12 @@ module Request
   end
 
 
-  # handle encoding Foo to UTF8 should be done at higher level ?
+  # TtsMessage events is used to Text-To-Speach messages.
+  #
+  # Examples:
+  #     TtsMessage.new :tts => "oups!"                                                  # => #<Request::TtsMessage:0x2ab1ba3cd8e0 @h={:tts=>"oups!"}>
+  #     TtsMessage.new :tts => "allez hop !", :speed => 200, :voice => "caroline22k"    # => #<Request::TtsMessage:0x2ab1ba3b8e40 @h={:tts=>"allez%20hop%20!", :speed=>200, :voice=>"caroline22k"}>
+  #     TtsMessage.new :tts => "GNU is Not Unix", :speed => 200, :pitch => 400          # => #<Request::TtsMessage:0x2ab1ba3a9580 @h={:tts=>"GNU%20is%20Not%20Unix", :speed=>200, :pitch=>400}>
   class TtsMessage < Base::Event
     MIN_SPEED = 1
     MAX_SPEED = 32_000
@@ -157,7 +165,10 @@ module Request
     MIN_PITCH = 1
     MAX_PITCH = 32_000
 
-
+    # constructor.
+    # take an hash in parameter, with at least +:tts+ key. the +:tts+ key must be a string encoded in UTF-8. Optionals
+    # parameters are +:speed+ and +:pitch+, they must be between MIN_SPEED and MAX_SPEED (MIN_PITCH and MAX_PITCH
+    # respectively). Default values for speed/pitch is 100.
     def initialize h
       raise ArgumentError.new('no :tts given') unless h[:tts]
       @h = h.dup
@@ -187,9 +198,17 @@ module Request
   end
 
 
+  # IdMessage events is used with an message id from Library or a personal MP3 file.
+  # Library can be seen here : http://my.nabaztag.com/vl/action/myMessagesBiblio.do
+  #
+  # Example (Batman):
+  #     IdMessage.new :idmessage => 10282    # => #<Request::IdMessage:0x2b28ec730128 @h={:idmessage=>10282}>
   class IdMessage < Base::Event
     MIN_IDMESSAGE = 1
 
+    # constructor.
+    # take an hash in parameter, with at least +:idmessage+ key. the +:tts+ must respond_to to_i and have a to_i
+    # representation greater or equal than MIN_IDMESSAGE.
     def initialize h
       @h = h.dup
 
@@ -213,10 +232,48 @@ module Request
 
 
 
-  # at time 1.2 do
-  #   move <right|left|both> [ear[s]] <backward|forward> [of] degrees <0-180>
-  #   set <bottom|left|middle|right|top|all> [led[s]] to <red|green|blue|yellow|magenta|cyan|white|rgb([0-255],[0-255],[0-255])>
-  # end
+  # Choregraphy in the Violet API looks like binary CSV code. It isn't really userfriendly so we use a DSL (Domain
+  # Specific Language) to describe Choregraphy more easily, and then translate it with this class. This allows us
+  # to describe a more powerful language, that is able (for examples) to set all leds in one sentence, instead of
+  # five 90% redundant lines :
+  # 'set all to green' will we translated into 'chor=10,0,led,0,0,255,0,0,led,1,0,255,0,0,led,2,0,255,0,0,led,3,0,255,0,0,led,4,0,255,0'
+  #
+  # Moreover, if you think that a Choregraphy is a set of events (that are either an ear command either a led
+  # command), then we can use logic operation such as ==, \+, -, | and & on Choregraphy (code taken from test file
+  # test_request_chor.rb):
+  #
+  #     one     = Choregraphy.new { move left ear forward of degrees 42 }
+  #     two     = Choregraphy.new { move right ear forward of degrees 42 }
+  #     onetwo  = Choregraphy.new { move both ears forward of degrees 42 }
+
+  #     assert_equal one | two, one + two
+  #     assert_equal one & two, Choregraphy.new
+  #     assert_equal one - two, one
+  #     assert_equal two - one, two
+  #     assert_equal onetwo, one + two
+  #     assert_equal onetwo & two, two
+  #     assert_equal onetwo & one, one
+  #     assert_equal onetwo - two, one
+  #     assert_equal onetwo - one, two
+  #     assert_equal onetwo | two, onetwo
+  #     assert_equal onetwo | one, onetwo
+  #
+  # =Choregraphy Creation
+  # see initialize()
+  #
+  # =Choregraphy DSL description
+  # Here is the syntax description:
+  # [] are alternation with | or range with -
+  # <> are optionals.
+  #
+  #     at time 1.2 <do>
+  #         move [right|left|both] <ear|ears> [backward|forward] <of> degrees [0-180]
+  #         set [bottom|left|middle|right|top|all] <led|leds> to [off|red|green|blue|yellow|magenta|cyan|white|rgb([0-255],[0-255],[0-255])]
+  #     <end>
+  #
+  # =Examples:
+  # for examples, please see the test file (namely test_request_chor.rb), because there are a lot of possible
+  # chor description and I don't want to duplicate too much code :)
   class Choregraphy < Base::Event
 
     # define dummy methods for DSL
@@ -227,21 +284,37 @@ module Request
       end
     end
 
+    # raised when the Choregraphy DSL is not ok
     class BadChorDesc < StandardError; end
-    EarCommandStruct = Struct.new :element, :direction, :angle, :time
-    LedCommandStruct = Struct.new :elements, :color,             :time
 
+
+    # Take some Choregraphy DSL code and "transform" it into a Choregraphy description of Violet API.
+    #
+    # =Arguments
+    # (optionals) an Hash in argument with keys:
+    # [name] the chortitle
+    # [code] an array of String/Proc or a String/Proc that describe the Choregraphy in our DSL.
+    # (optionals) a block of code that describe the Choregraphy.
+    # 
+    # =Raise
+    # raise a Choregraphy::BadChorDesc if not happy.
+    #
+    # =Examples (all results are equals):
+    #   Request::Choregraphy.new { set all off; move right ear forward of degrees 180 } #   => #<Request::Choregraphy:0x2b07a05f8ca0 @chor=["0,led,0,0,0,0", "0,led,1,0,0,0", "0,led,2,0,0,0", "0,led,3,0,0,0", "0,led,4,0,0,0", "0,motor,0,180,0,0"], @code=[#<Proc:0x00002b07a05f8d40@(irb):3>], @time=0>
+    #   Request::Choregraphy.new :code => 'set all off; move right ear forward of degrees 180' #   => #<Request::Choregraphy:0x2b07a05e84b8 @chor=["0,led,0,0,0,0", "0,led,1,0,0,0", "0,led,2,0,0,0", "0,led,3,0,0,0", "0,led,4,0,0,0", "0,motor,0,180,0,0"], @code=["set all off; move right ear forward of degrees 180"], @time=0>
+    #   Request::Choregraphy.new :code => [ 'set all off', 'move right ear forward of degrees 180' ] #   => #<Request::Choregraphy:0x2b07a05dae30 @chor=["0,led,0,0,0,0", "0,led,1,0,0,0", "0,led,2,0,0,0", "0,led,3,0,0,0", "0,led,4,0,0,0", "0,motor,0,180,0,0"], @code=["set all off", "move right ear forward of degrees 180"], @time=0>
+    #
     def initialize(h=Hash.new, &block)
       @name = h[:name] if h[:name]
       @code = if block_given? then block else h[:code] end
       __choreval__
-      @chor.sort!
+      @chor.sort! unless @chor.nil?
     end
 
     # + has the same behaviour that |
     %w[+ - & |].each do |op|
       define_method(op) do |other|
-        new_chor = self.chor.method(op).call(other.chor).uniq.sort
+        new_chor = if self.chor.nil? then other.chor.method(op).call(self.chor).uniq.sort else self.chor.method(op).call(other.chor).uniq.sort end
         ret = Choregraphy.new
         ret.instance_eval { @chor = new_chor } # hacky !
         ret
@@ -249,7 +322,7 @@ module Request
     end
 
     def == other
-      self.to_url == other.to_url
+      self.chor == other.chor
     end
 
     def to_url
@@ -260,6 +333,13 @@ module Request
       url << "chortitle=#{@name}" unless @name.nil?
       url
     end
+
+
+    #
+    # used internally
+    #
+    EarCommandStruct = Struct.new :element, :direction, :angle, :time
+    LedCommandStruct = Struct.new :elements, :color,            :time
 
     def set command
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(LedCommandStruct)

@@ -53,6 +53,7 @@ RDOC_OPTIONS    = [
 # files
 LIB_FILES       = Dir["lib/**/*.rb"]
 TEST_FILES      = Dir["test/**/*.rb"]
+EXAMPLES_FILES  = Dir["examples/**/*.rb"]
 
 RDOC_FILES      = %w[ README MIT-LICENSE TODO CHANGES BUGS] + LIB_FILES
 DIST_FILES      = %w[ Rakefile ] + LIB_FILES + TEST_FILES + RDOC_FILES
@@ -106,7 +107,7 @@ gem_spec = Gem::Specification.new do |s|
   s.extra_rdoc_files    = RDOC_FILES + Dir["#{RDOC_DIR}/**/*"]
 
   s.test_files          = TEST_FILES
-  s.files               = DIST_FILES
+  s.files               = DIST_FILES + EXAMPLES_FILES
   s.version             = PROJECT_VERSION
   s.rubyforge_project   = UNIX_NAME
 end

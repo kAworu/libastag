@@ -1,10 +1,9 @@
 
+require 'violet/violetapi.rb'
 
 # Handy class/methods to control a Nabastag.
 module Libastag
-  VERSION = '0.0.1'
-
-  require File.join( File.dirname(__FILE__), 'violet', 'violetapi.rb' )
+  VERSION = '0.0.2'
 
   # this class store all attribute of a Nabaztag.
   # it receive events and  retrieve information

@@ -49,7 +49,7 @@ if you want to access to the REXML::Document object of a ServerRsp you can eithe
 =end
 
 module Response
-  require File.join(File.dirname(__FILE__), '..', 'helpers', 'helpers.rb')
+  require '../helpers/helpers.rb'
 
   # ProtocolExcepion are raised if server return a unknown response.
   #

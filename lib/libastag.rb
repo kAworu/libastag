@@ -1,5 +1,6 @@
 
-require 'violet/violetapi.rb'
+require File.join( File.dirname(__FILE__), 'violet', 'response.rb' )
+require File.join( File.dirname(__FILE__), 'violet', 'request.rb'  )
 
 # Handy class/methods to control a Nabastag.
 module Libastag

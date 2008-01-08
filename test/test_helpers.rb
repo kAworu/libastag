@@ -6,7 +6,7 @@ def from_this_file_path *args
 end
 
 
-require from_this_file_path('..', 'lib', 'violet', 'helpers', 'helpers.rb')
+require from_this_file_path('..', 'lib', 'violet', 'helpers.rb')
 
 require 'rexml/document'
 require 'test/unit'

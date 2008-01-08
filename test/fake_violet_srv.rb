@@ -70,7 +70,7 @@ module FakeVioletSrv
 
 
 
-  def FakeVioletSrv.start(port=3000, logfile=false)
+  def FakeVioletSrv.start(port=3_000, logfile=false)
     if logfile
       log = File.open(logfile, 'w')
       $stderr = log

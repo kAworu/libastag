@@ -7,8 +7,8 @@ end
 
 
 require from_this_file_path('fake_violet_srv.rb')
-require from_this_file_path('..', 'lib', 'violet', 'request',  'request.rb' )
-require from_this_file_path('..', 'lib', 'violet', 'response', 'response.rb')
+require from_this_file_path('..', 'lib', 'violet', 'request.rb' )
+require from_this_file_path('..', 'lib', 'violet', 'response.rb')
 
 require 'test/unit'
 require 'open-uri'
@@ -20,7 +20,7 @@ require 'open-uri'
 #
 
 t = Thread.new do
-  FakeVioletSrv.start 3000, from_this_file_path('testsend_log.tmp')
+  FakeVioletSrv.start 3_000, from_this_file_path('testsend_log.tmp')
 end
 sleep 1 # wait for server start.
 

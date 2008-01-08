@@ -7,8 +7,8 @@ but other Event derivated class are used to create objects.
 =end
 
 module Request
-  require '../response/response.rb'
-  require '../helpers/helpers.rb'
+  require File.join( File.dirname(__FILE__), 'response.rb' )
+  require File.join( File.dirname(__FILE__), 'helpers.rb'  )
 
   # the VioletAPI url where we send request.
   API_URL = 'http://api.nabaztag.com/vl/FR/api.jsp'
@@ -417,7 +417,6 @@ module Request
       # right and left are specials cases
       cste_name = "__#{cste_name}_for_led__" if cste_name =~ /^(LEFT|RIGHT)$/
 
-      cste_name
       define_method(cste_name.downcase) do |command|
         (command.elements ||= Array.new) << cste
         command
@@ -449,7 +448,7 @@ module Request
 
     Ears::Directions.constants.each do |cste_name|
       cste = Helpers.constantize "#{self}::Ears::Directions::#{cste_name}"
-      cste_name
+
       define_method(cste_name.downcase) do |command|
         command.direction = cste
         command

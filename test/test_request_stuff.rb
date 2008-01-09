@@ -1,20 +1,18 @@
 #!/usr/bin/ruby
 
 
-MY_PATH = File.join( File.dirname(__FILE__), '..', 'lib', 'violet' )
-$:.unshift(MY_PATH) unless $:.include?(MY_PATH)
+$:.unshift File.join( File.dirname(__FILE__), '..', 'lib' )
 
 
-require 'request.rb'
-require 'response.rb'
+require 'libastag/request'
+require 'libastag/response'
 
 require 'test/unit'
 
 
 
-
 class RequestStuffTest < Test::Unit::TestCase
-  include Request
+  include Libastag::Request
 
   def test_SetEarsPosition_new
     assert_equal 0,  SetEarsPosition::MIN_POS

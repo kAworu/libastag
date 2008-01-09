@@ -1,12 +1,11 @@
 #!/usr/bin/ruby
 
 
-MY_PATH = File.join( File.dirname(__FILE__), '..', 'lib', 'violet' )
-$:.unshift(MY_PATH) unless $:.include?(MY_PATH)
+$:.unshift File.join( File.dirname(__FILE__), '..', 'lib' )
 
 
-require 'request.rb'
-require 'response.rb'
+require 'libastag/request'
+require 'libastag/response'
 
 require 'test/unit'
 
@@ -17,7 +16,7 @@ class ChorTrinity < Struct.new :code, :strcode, :result
 end
 
 class ChoregraphyTest < Test::Unit::TestCase
-  include Request
+  include Libastag::Request
 
   SIMPLES_CHORS = [
     ChorTrinity.new(Proc.new { set top led red },

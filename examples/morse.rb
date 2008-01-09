@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require File.join( File.dirname(__FILE__), '..', 'lib', 'violet', 'request.rb' )
+require File.join( File.dirname(__FILE__), '..', 'lib', 'libastag', 'request.rb' )
 
 
 class String

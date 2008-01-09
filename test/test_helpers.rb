@@ -1,10 +1,9 @@
 #!/usr/bin/ruby
 
-MY_PATH = File.join( File.dirname(__FILE__), '..', 'lib', 'violet' )
-$:.unshift(MY_PATH) unless $:.include?(MY_PATH)
+$:.unshift File.join( File.dirname(__FILE__), '..', 'lib' )
 
 
-require 'helpers.rb'
+require 'libastag/helpers'
 
 require 'rexml/document'
 require 'test/unit'
@@ -23,7 +22,7 @@ class HelpersTest < Test::Unit::TestCase
 
   CONSTANT_TEST = 42
   def test_constantize
-    assert_equal RUBY_VERSION,  Helpers.constantize('RUBY_VERSION')
-    assert_equal CONSTANT_TEST, Helpers.constantize("#{self.class}::CONSTANT_TEST")
+    assert_equal RUBY_VERSION,  Libastag::Helpers.constantize('RUBY_VERSION')
+    assert_equal CONSTANT_TEST, Libastag::Helpers.constantize("#{self.class}::CONSTANT_TEST")
   end
 end

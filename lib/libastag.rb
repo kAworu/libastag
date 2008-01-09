@@ -26,6 +26,7 @@ module Libastag
     # This extra identification limits the risks of spam, since, in order to send 
     # a message, you need to know both the serial number and the toke
     attr_reader :token
+
     # object that handle left ear, see #RabbitEar.
     attr_reader :left_ear
     # object that handle right ear, see #RabbitEar.
@@ -47,11 +48,12 @@ module Libastag
     # make a *basic* syntax check of +serial+ and +token+
     # (see #SERIAL_MATCHER and #TOKEN_MATCHER), but it doesn't mean
     # that they are valid.
-    def initialize serial, token
-      raise ArgumentError.new("bad serial : #{serial}") unless serial =~ SERIAL_MATCHER
-      raise ArgumentError.new("bad token  : #{token }") unless token  =~  TOKEN_MATCHER
-      @serial = serial.upcase
-      @token  = token.to_i
+    def initialize h
+      raise ArgumentError.new("bad serial : #{h[:serial]}") unless h[:serial] and h[:serial] =~ SERIAL_MATCHER
+      raise ArgumentError.new("bad token  : #{h[:token] }") unless h[:token]  and h[:token]  =~  TOKEN_MATCHER
+      @cache  = Hash.new
+      @serial = h[:serial].upcase
+      @token  = h[:token].to_i
 #     _________                     _________
 #    /         \                   /         \
      @right_ear,                    @left_ear          = RabbitEar.new(:right), RabbitEar.new(:left)
@@ -84,37 +86,120 @@ module Libastag
 #   |                                         |
 #   |                   |                     |
 #  /                                           \
-                    @bottom_led                         = RabbitLed.new :bottom
+                    @bottom_led                         = RabbitLed.new(:bottom)
 # -----------------------------------------------
     end
 
 
-    def name
-      # TODO
+    # FIXME: should have a parameter :S
+    # return the ServerRsp. you can access rsp.message and rsp.comment.
+    def link_preview
+      query(Request::GET_LINKPREVIEW)
     end
+
+    # return an array of Strings.
+    # Examples TODO
+    #   ... [ 'toto', 'tata' ]
+    def friends
+      rsp = query(Request::GET_FRIENDS_LIST)
+      rsp.friends.collect { |f| f[:name] }
+    end
+
+    # return an Array of Hash, with <tt>:title</tt>, <tt>:date</tt>, <tt>:from</tt> and <tt>:url</tt> keys.
+    def inbox
+      query(Request::GET_INBOX_LIST).msgs
+    end
+
+    # return the Rabbit's timezone. persistant.
+    def timezone
+      @cache[:timezone] ||= query(Request::GET_TIMEZONE).timezone
+    end
+
+    # return the Rabbit's signature. persistant.
+    def signature
+      @cache[:signature] ||= query(Request::GET_SIGNATURE).signature
+    end
+
+    # return an array of Strings.
+    # Examples TODO
+    #   ... [ 'toto', 'tata' ]
+    def blacklisted
+      rsp = query(Request::GET_BLACKLISTED)
+      rsp.pseudos.collect { |f| f[:name] }
+    end
+
+    # return +true+ if the Rabbit is asleep, +false+ otherwhise.
     def asleep?
-      # TODO
+      query(Request::GET_RABBIT_STATUS).rabbitSleep =~ /YES/i
     end
-    def sleep!
-      # TODO
-    end
+
+    # return +true+ if the Rabbit is awake, +false+ otherwhise.
     def awake?
-      # TODO
+      not asleep?
     end
-    def wakeup!
-      # TODO
-    end
+
+    # return the Rabbit's version ("V2" or "V1"). persistant.
+    #
+    # see is_a_tag_tag?
     def version
-      # TODO
+      @cache[:version] ||= query(Request::GET_RABBIT_VERSION).rabbitVersion
     end
-  end
+
+    # return +true+ if the Rabbit is a nabaztag/tag ("V2" Rabbit), +false+ otherwhise.
+    def is_a_tag_tag?
+      self.version =~ /V2/i
+    end
+
+    # return a Hash. persistant.
+    # Examples TODO
+    #   ... {:fr => "claire22k", :de => "helga22k"}
+    def voices
+        @cache[:voices] ||= query(Request::GET_LANG_VOICE).voices.inject(Hash.new) { |h,i| h[i[:lang].to_sym] = i[:command]; h }
+    end
+
+    # return the Rabbit name. persistant.
+    def name
+      @cache[:name] ||= query(Request::GET_RABBIT_NAME).rabbitName
+    end
+
+    # return an array of languages.
+    # Examples TODO
+    #   ... [ "fr", "us", "uk", "de" ]
+    def langs
+      @cache[:langs] ||= query(Request::GET_SELECTED_LANG).myLangs.collect { |l| l[:lang] }
+    end
+
+    # FIXME: should have a parameter :S
+    def msg_preview
+      query(Request::GET_MESSAGE_PREVIEW)
+    end
+
+    # send the Rabbit to sleep. return the sever's response.
+    def sleep!
+      query(Request::SET_RABBIT_ASLEEP)
+    end
+
+    # wake up the Rabbit. return the sever's response.
+    def wakeup!
+      query(Request::SET_RABBIT_AWAKE)
+    end
+
+    private
+    # used to send Query, and check the ServerRsp.
+    def query event
+      rsp = Request::Query.new :token  => @token, :serial => @serial, :event => event
+      raise "unhandled server's response : #{rsp.inspect}" unless rsp.good?
+      rsp
+    end
+
+  end # class Rabbit
 
 
-  class RabitLed
+  class RabbitLed
   end
   
 
-  class RabitEar
+  class RabbitEar
   end
 end
 

@@ -645,6 +645,7 @@ module Libastag
     end
 
 
+    # FIXME: should add a parameter
     # Preview the TTS or music (with music id) without sending it
     # Examples
     #     Query.new(:event => GET_LINKPREVIEW, :serial => my_serial, :token => my_token).send! # => #<Response::LinkPreview:0x2aaaab100f88 @xml=<UNDEFINED> ... </>>
@@ -722,6 +723,7 @@ module Libastag
     GET_SELECTED_LANG = Action.new 11
 
 
+    # FIXME: should add a parameter
     # Get a preview of a message. This works only with the urlPlay parameter and URLs like broad/001/076/801/262.mp3
     # Examples
     #     Query.new(:event => GET_MESSAGE_PREVIEW, :serial => my_serial, :token => my_token).send!   # => #<Response::LinkPreview:0x2aaaab011258 @xml=<UNDEFINED> ... </>>

@@ -115,6 +115,57 @@ class RequestStuffTest < Test::Unit::TestCase
     assert_equal ['idmessage=1337'], IdMessage.new(:idmessage => id).to_url
 
     i = IdMessage.new :idmessage => id, :nabcast => nabcast, :nabcasttitle => title
-    assert_equal [ 'idmessage=1337', "nabcast=#{nabcast}", "nabcasttitle=#{URI.escape(title)}"], i.to_url
+    assert_equal [ 'idmessage=1337', "nabcast=#{nabcast}", "nabcasttitle=#{URI.escape(title)}"].sort, i.to_url.sort
+  end
+
+
+  def test_AudioStream_new
+    assert_raise(ArgumentError) { AudioStream.new }
+    assert_raise(ArgumentError) { AudioStream.new('') }
+    assert_raise(ArgumentError) { AudioStream.new([]) }
+    assert_raise(ArgumentError) { AudioStream.new(Hash.new) }
+    assert_raise(ArgumentError) { AudioStream.new(:foo => "bar") }
+
+    assert_nothing_raised { AudioStream.new 'foo' }
+    assert_nothing_raised { AudioStream.new %w[foo] }
+    assert_nothing_raised { AudioStream.new :url_list => 'foo' }
+    assert_nothing_raised { AudioStream.new :url_list => %w[foo] }
+  end
+
+
+  def test_AudioStream_to_url
+    assert_equal 'urlList=one', AudioStream.new('one').to_url
+    assert_equal 'urlList=two', AudioStream.new('two').to_url
+    assert_equal 'urlList=two|one', AudioStream.new(%w[two one]).to_url
+    assert_equal 'urlList=one|two', AudioStream.new(%w[one two]).to_url
+    assert_equal 'urlList=one|two|three', AudioStream.new(%w[one two], 'three').to_url
+    assert_equal 'urlList=one|two|three', AudioStream.new(%w[one], 'two', ['three']).to_url
+  end
+
+
+  def test_AudioStream_equals
+    one = AudioStream.new('one')
+    assert_equal one, AudioStream.new('one')
+    assert_equal one, AudioStream.new(%w[one])
+    assert_equal one, AudioStream.new(:url_list => %w[one])
+    assert_equal one, AudioStream.new(:url_list => 'one')
+    assert_not_equal one, AudioStream.new('two')
+
+    onetwo = AudioStream.new('one', 'two')
+    assert_equal onetwo, AudioStream.new('one', 'two')
+    assert_equal onetwo, AudioStream.new(['one', 'two'])
+    assert_equal onetwo, AudioStream.new('one', %w[two])
+    assert_equal onetwo, AudioStream.new(:url_list => ['one', 'two'])
+    assert_not_equal onetwo, AudioStream.new('two' 'one')
+  end
+
+
+  def test_AudioStream_add
+    one = AudioStream.new('one')
+    two = AudioStream.new('two')
+
+    assert_equal one + two, AudioStream.new('one', 'two')
+    assert_equal two + one, AudioStream.new('two', 'one')
   end
 end
+

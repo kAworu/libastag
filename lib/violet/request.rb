@@ -32,7 +32,8 @@ module Request
         raise NotImplementedError
       end
 
-      # it's possible to send multiples events on a single request.
+      # it's possible to send multiples events on a single request. this method return a new EventCollection object,
+      # that cotains +self+ and +other+.
       def + other
         raise ArgumentError.new("#{other.inspect} is a Streamed Event") if other.streamed?
         EventCollection.new self, other
@@ -256,8 +257,17 @@ module Request
   #    AudioStream.new ["http://my_streamed_url.com", "http://plop.test"]               # => #<Request::AudioStream:0x2b44fafbdc30 @args=["http://my_streamed_url.com", "http://plop.test"]>
   #    AudioStream.new :url_list => ["http://my_streamed_url.com", "http://plop.test"]  # => #<Request::AudioStream:0x2b52a24a28e0 @args=["http://my_streamed_url.com", "http://plop.test"]>
   class AudioStream < Base::Event
+
+    # take an Array of String or many Strings arguments, each String is a URL to play. Another way to create
+    # AudioStream is to give a Hash in argument, with the <tt>:url_list</tt> keys that contains an Array of Strings
+    # or a String. see examples.
     def initialize *args
-      args = [ args.first[:url_list] ] if args.first.is_a?(Hash)
+      raise ArgumentError.new('no args given') if args.empty? or args.first.empty?
+      if args.first.is_a?(Hash)
+        args = [ args.first[:url_list] ]
+        raise ArgumentError.new('empty :url_list key in Hash argument') if args.first.nil? or args.first.empty?
+      end
+
       @url_list = args.flatten
     end
 

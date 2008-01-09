@@ -49,10 +49,10 @@ module Libastag
     # (see #SERIAL_MATCHER and #TOKEN_MATCHER), but it doesn't mean
     # that they are valid.
     def initialize h
-      raise ArgumentError.new("bad serial : #{h[:serial]}") unless h[:serial] and h[:serial] =~ SERIAL_MATCHER
-      raise ArgumentError.new("bad token  : #{h[:token] }") unless h[:token]  and h[:token]  =~  TOKEN_MATCHER
+      raise ArgumentError.new("bad serial : #{h[:serial]}") unless h[:serial] and h[:serial].to_s =~ SERIAL_MATCHER
+      raise ArgumentError.new("bad token  : #{h[:token] }") unless h[:token]  and h[:token].to_s  =~  TOKEN_MATCHER
       @cache  = Hash.new
-      @serial = h[:serial].upcase
+      @serial = h[:serial].to_s.upcase
       @token  = h[:token].to_i
 #     _________                     _________
 #    /         \                   /         \
@@ -102,12 +102,21 @@ module Libastag
     #   ... [ 'toto', 'tata' ]
     def friends
       rsp = query(Request::GET_FRIENDS_LIST)
-      rsp.friends.collect { |f| f[:name] }
+      if rsp.listfriend[:nb].to_i.zero?
+        Array.new
+      else
+        rsp.friends.collect { |f| f[:name] }
+      end
     end
 
     # return an Array of Hash, with <tt>:title</tt>, <tt>:date</tt>, <tt>:from</tt> and <tt>:url</tt> keys.
     def inbox
-      query(Request::GET_INBOX_LIST).msgs
+      rsp = query(Request::GET_INBOX_LIST)
+      if rsp.listreceivedmsg[:nb].to_i.zero?
+        Array.new
+      else
+        rsp.msgs
+      end
     end
 
     # return the Rabbit's timezone. persistant.
@@ -125,7 +134,11 @@ module Libastag
     #   ... [ 'toto', 'tata' ]
     def blacklisted
       rsp = query(Request::GET_BLACKLISTED)
-      rsp.pseudos.collect { |f| f[:name] }
+      if rsp.blacklist[:nb].to_i.zero?
+        Array.new
+      else
+        rsp.pseudos.collect { |f| f[:name] }
+      end
     end
 
     # return +true+ if the Rabbit is asleep, +false+ otherwhise.
@@ -187,7 +200,7 @@ module Libastag
     private
     # used to send Query, and check the ServerRsp.
     def query event
-      rsp = Request::Query.new :token  => @token, :serial => @serial, :event => event
+      rsp = Request::Query.new(:token  => @token, :serial => @serial, :event => event).send!
       raise "unhandled server's response : #{rsp.inspect}" unless rsp.good?
       rsp
     end
@@ -196,10 +209,14 @@ module Libastag
 
 
   class RabbitLed
+    def initialize x
+    end
   end
   
 
   class RabbitEar
+    def initialize x
+    end
   end
 end
 

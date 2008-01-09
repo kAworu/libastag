@@ -104,6 +104,10 @@ module Libastag
       # to_url, it should return a string that contains some GET parameters like "foo=bar&oni=2", or an array of
       # GET options like [ "foo=bar", "oni=2" ].
       def initialize h
+        if h[:rabbit]
+          h[:serial], h[:token] = h[:rabbit].serial, h[:rabbit].token
+        end
+
         raise ArgumentError.new('event parameter has no "to_url" method or is empty') unless h[:event] and h[:event].respond_to?(:to_url)
         raise ArgumentError.new('need a :serial') unless h[:serial]
         raise ArgumentError.new('need a :token' ) unless h[:token]

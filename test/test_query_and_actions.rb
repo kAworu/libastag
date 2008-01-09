@@ -63,6 +63,14 @@ class QueryAndActionTest < Test::Unit::TestCase
   end
 
 
+  def test_query_to_url_with_stream
+    uri = 'mouhahhaha'
+    stream_event = Request::AudioStream.new(uri)
+    q = Request::Query.new :event => stream_event, :serial => GOOD_SERIAL, :token => GOOD_TOKEN
+    assert_equal "#{Request::APISTREAM_URL}?sn=#{GOOD_SERIAL}&token=#{GOOD_TOKEN}&#{stream_event.to_url}", q.to_url
+  end
+
+
   def test_xml_response
     rsp = Request::Query.new(:event => Request::GET_RABBIT_NAME, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!(:xml)
     assert_nothing_raised { REXML::Document.new(rsp) }

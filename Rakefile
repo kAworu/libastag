@@ -56,7 +56,7 @@ TEST_FILES      = Dir["test/**/*.rb"]
 EXAMPLES_FILES  = Dir["examples/**/*.rb"]
 
 RDOC_FILES      = %w[ README MIT-LICENSE TODO CHANGES BUGS] + LIB_FILES
-DIST_FILES      = %w[ Rakefile ] + EXAMPLES_FILES + TEST_FILES + RDOC_FILES + Dir["#{RDOC_DIR}/**/*"]
+DIST_FILES      = %w[ Rakefile ] + EXAMPLES_FILES + TEST_FILES + RDOC_FILES
 
 
 

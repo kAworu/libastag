@@ -5,7 +5,7 @@ $:.unshift(File.dirname(__FILE__)) unless $:.include?(File.dirname(__FILE__)) or
 
 # Handy class/methods to control a Nabastag.
 module Libastag
-  VERSION = '0.0.2'
+  VERSION = '0.0.3'
 
   require 'violet/response.rb'
   require 'violet/request.rb'

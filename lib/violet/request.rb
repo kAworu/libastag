@@ -105,7 +105,10 @@ module Request
     def to_url
       opts = @event.to_url
       if opts.is_a?(Array) then opts = opts.join('&') end
-      "#{API_URL}?" << [ "sn=#{@serial}", "token=#{@token}", opts ].join('&')
+
+      base_url = if @event.class.to_s =~ /Stream$/ then APISTREAM_URL else API_URL end
+
+      "#{base_url}?" << [ "sn=#{@serial}", "token=#{@token}", opts ].join('&')
     end
 
     # send the query to the server. it return a ServerRsp object from the corresponding class, or the raw xml
@@ -231,6 +234,16 @@ module Request
   end
 
 
+  class AudioStream < Base::Event
+    def initialize *args
+      @args = args.flatten
+    end
+
+    def to_url
+      "urlList=#{@args.join('|')}"
+    end
+  end
+
 
   # Choregraphy in the Violet API looks like binary CSV code. It isn't really userfriendly so we use a DSL (Domain
   # Specific Language) to describe Choregraphy more easily, and then translate it with this class. This allows us
@@ -276,18 +289,6 @@ module Request
   # chor description and I don't want to duplicate too much code :)
   class Choregraphy < Base::Event
 
-    # define dummy methods for DSL
-    def self.bubble(*methods)
-      methods.each do |m|
-        define_method(m) { |args| args }
-        private(m.to_sym)
-      end
-    end
-
-    # raised when the Choregraphy DSL is not ok
-    class BadChorDesc < StandardError; end
-
-
     # Take some Choregraphy DSL code and "transform" it into a Choregraphy description of Violet API.
     #
     # =Arguments
@@ -311,6 +312,26 @@ module Request
       @chor.sort! unless @chor.nil?
     end
 
+    def to_url
+      raise BadChorDesc.new('no choregraphy given') unless @chor
+
+      url = Array.new
+      url << "chor=10," + @chor.join(',') unless @chor.nil?
+      url << "chortitle=#{@name}" unless @name.nil?
+      url
+    end
+
+    # define dummy methods for DSL
+    def self.bubble(*methods)
+      methods.each do |m|
+        define_method(m) { |args| args }
+        private(m.to_sym)
+      end
+    end
+
+    # raised when the Choregraphy DSL is not ok
+    class BadChorDesc < StandardError; end
+
     # + has the same behaviour that |
     %w[+ - & |].each do |op|
       define_method(op) do |other|
@@ -324,22 +345,6 @@ module Request
     def == other
       self.chor == other.chor
     end
-
-    def to_url
-      raise BadChorDesc.new('no choregraphy given') unless @chor
-
-      url = Array.new
-      url << "chor=10," + @chor.join(',') unless @chor.nil?
-      url << "chortitle=#{@name}" unless @name.nil?
-      url
-    end
-
-
-    #
-    # used internally
-    #
-    EarCommandStruct = Struct.new :element, :direction, :angle, :time
-    LedCommandStruct = Struct.new :elements, :color,            :time
 
     def set command
       raise BadChorDesc.new('wrong Choregraphy description')    unless command.is_a?(LedCommandStruct)
@@ -399,7 +404,16 @@ module Request
       end
     end
 
-    # used by operators
+
+    #
+    # used internally
+    #
+
+    # Command Structs (Ear and Leds)
+    EarCommandStruct = Struct.new :element, :direction, :angle, :time
+    LedCommandStruct = Struct.new :elements, :color,            :time
+
+    # used by operators + - & |
     protected
     def chor
       @chor
@@ -546,7 +560,7 @@ module Request
       end
     end
 
-  end
+  end # class Choregraphy
 
 
 

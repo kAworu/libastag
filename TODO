@@ -1,2 +1,5 @@
+- replace is_a?(Klass) by respond_to?(Something) when possible
+- add variable tempo to chor
 - Complete Request module
+- make a idMessage db for library
 - work on fake server

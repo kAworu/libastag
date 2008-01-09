@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require File.join( File.dirname(__FILE__), '..', 'lib', 'libastag', 'request.rb' )
+require 'libastag'
 
 
 class String
@@ -40,7 +40,7 @@ morse = ask("what's your name ? ").to_morse
 
 infos = ask('token: '), ask('serial: ')
 
-c = Request::Choregraphy.new do
+c = Libastag::Request::Choregraphy.new do
   # initialize the timer
   timer = 0
 
@@ -61,7 +61,7 @@ c = Request::Choregraphy.new do
   end
 end
 
-q = Request::Query.new  :token  => infos.first,
+q = Libastag::Request::Query.new  :token  => infos.first,
                         :serial => infos.last,
                         :event  => c
 

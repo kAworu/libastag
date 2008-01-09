@@ -34,12 +34,18 @@ module Request
 
       # it's possible to send multiples events on a single request.
       def + other
+        raise ArgumentError.new("#{other.inspect} is a Streamed Event") if other.streamed?
         EventCollection.new self, other
       end
 
       # to_url has to be overrided
       def to_url
         raise NotImplementedError
+      end
+
+      # return +true+ if self is a Stream Event (that use APISTREAM_URL instead of API_URL), +false+ otherwise.
+      def streamed?
+        self.class.to_s =~ /Stream$/
       end
     end
 
@@ -104,9 +110,9 @@ module Request
     # return the complet url
     def to_url
       opts = @event.to_url
-      if opts.is_a?(Array) then opts = opts.join('&') end
+      if opts.respond_to?(:join) then opts = opts.join('&') end
 
-      base_url = if @event.class.to_s =~ /Stream$/ then APISTREAM_URL else API_URL end
+      base_url = if @event.streamed? then APISTREAM_URL else API_URL end
 
       "#{base_url}?" << [ "sn=#{@serial}", "token=#{@token}", opts ].join('&')
     end
@@ -158,7 +164,7 @@ module Request
   end
 
 
-  # TtsMessage events is used to Text-To-Speach messages.
+  # TtsMessage events are used to Text-To-Speach messages.
   #
   # =Examples
   #     TtsMessage.new :tts => "oups!"                                                  # => #<Request::TtsMessage:0x2ab1ba3cd8e0 @h={:tts=>"oups!"}>
@@ -235,14 +241,51 @@ module Request
   end
 
 
+  # AudioStream events are used with MP3 hyperlinks to make your rabbit play podcasts or webradio.
+  # Your rabbit has to be a tag/tag to use AudioStream events (it should be checked at higher level, this class won't do that for you :))
+  #
+  # see http://api.nabaztag.com/docs/home.html#sendurl
+  #
+  # =Examples
+  # you can give a String argument, or an Array of String if you want to play several urls, or a Hash with a
+  # <tt>:url_list</tt> key.
+  #    AudioStream.new "http://my_streamed_url.com"                 # => #<Request::AudioStream:0x2b44fafd52e0 @args=["http://my_streamed_url.com"]>
+  #    AudioStream.new :url_list => "http://my_streamed_url.com"    # => #<Request::AudioStream:0x2b52a24acf70 @args=["http://my_streamed_url.com"]>
+  #
+  #    AudioStream.new "http://my_streamed_url.com", "http://plop.test"                 # => #<Request::AudioStream:0x2b44fafc9058 @args=["http://my_streamed_url.com", "http://plop.test"]>
+  #    AudioStream.new ["http://my_streamed_url.com", "http://plop.test"]               # => #<Request::AudioStream:0x2b44fafbdc30 @args=["http://my_streamed_url.com", "http://plop.test"]>
+  #    AudioStream.new :url_list => ["http://my_streamed_url.com", "http://plop.test"]  # => #<Request::AudioStream:0x2b52a24a28e0 @args=["http://my_streamed_url.com", "http://plop.test"]>
   class AudioStream < Base::Event
     def initialize *args
-      @args = args.flatten
+      args = [ args.first[:url_list] ] if args.first.is_a?(Hash)
+      @url_list = args.flatten
     end
 
     def to_url
-      "urlList=#{@args.join('|')}"
+      "urlList=#{@url_list.join('|')}"
     end
+
+    # AudioStream object can be added with other AudioStream objects. When you add first to second, the new
+    # AudioStream will play all the urls in first, then all the urls in second.
+    #
+    # ==Examples
+    #  one = AudioStream.new "http://www.one.com"   # => #<Request::AudioStream:0x2b2d075e0b28 @url_list=["http://www.one.com"]>
+    #  two = AudioStream.new "http://www.two.com"   # => #<Request::AudioStream:0x2b2d075db510 @url_list=["http://www.two.com"]>
+    #  onetwo = one + two   # => #<Request::AudioStream:0x2b2d075d7a78 @url_list=["http://www.one.com", "http://www.two.com"]>
+    #  twoone = two + one   # => #<Request::AudioStream:0x2b2d075cff80 @url_list=["http://www.two.com", "http://www.one.com"]>
+    def + other
+      raise ArgumentError.new("#{other.inspect} is not a Streamed Event") unless other.streamed?
+      AudioStream.new(self.url_list, other.url_list)
+    end
+
+    # compare two AudioStream. AudioStream are equals if and only if they have the same url list.
+    def == other
+      raise ArgumentError.new("#{other.inspect} is not a Streamed Event") unless other.streamed?
+      self.url_list == other.url_list
+    end
+
+    protected
+    attr_reader :url_list
   end
 
 
@@ -426,7 +469,7 @@ module Request
     def __choreval__
       @chor, @time = Array.new, 0
       
-      @code = [@code] unless @code.is_a?(Array)
+      @code = [@code] unless @code.respond_to?(:each)
       @code.each do |code|
         if code.is_a?(Proc)
           instance_eval(&code)

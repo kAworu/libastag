@@ -84,7 +84,7 @@ module Request
   #
   # see http://api.nabaztag.com/docs/home.html
   #
-  # Examples:
+  # ==Examples
   #  q = Query.new :token => "my_token", :serial => "my_serial", :event => GET_RABBIT_NAME # =>  #<Request::Query:0x2aaaaaee10b8 @event=#<Request::Action:0x2b74bb47f828 @id=10>, @token="my_token", @serial="my_serial">
   class Query
     require 'open-uri'
@@ -101,7 +101,7 @@ module Request
       @event, @serial, @token = h[:event], h[:serial], h[:token]
     end
 
-    # return the complet url: API_URL with the +serial+, +token+ and options.
+    # return the complet url
     def to_url
       opts = @event.to_url
       if opts.is_a?(Array) then opts = opts.join('&') end
@@ -111,9 +111,12 @@ module Request
       "#{base_url}?" << [ "sn=#{@serial}", "token=#{@token}", opts ].join('&')
     end
 
-    # send the query to the server. it return a ServerRsp object from the corresponding class, or the raw xml
-    # server's response if called with :xml argument.
-    # Examples:
+    # send the query to the server. it return a ServerRsp object from the corresponding class if no args is given.
+    #
+    # ==Arguments
+    # [:xml] the raw xml server's response
+    #
+    # ==Examples
     #  q = Query.new :token => "my_token", :serial => "my_serial", :event => GET_RABBIT_NAME # =>  #<Request::Query:0x2aaaaaee10b8 @event=#<Request::Action:0x2b74bb47f828 @id=10>, @token="my_token", @serial="my_serial">
     #  q.send!          # => #<Response::RabbitName:0x2b74b8c38798 @xml=<UNDEFINED> ... </>>
     #  q.send!(:xml)    # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rsp><rabbitName>Makoto</rabbitName></rsp>\n"
@@ -129,7 +132,7 @@ module Request
   # SetEarsPosition events change your rabbit's ears positions.
   # you can set left ear position, or right ear position, or both.
   #
-  # Examples:
+  # =Examples
   #     SetEarsPosition.new :posleft => 12                 # => #<Request::SetEarsPosition:0x2ad0b2c79680 @h={:posleft=>12}>
   #     SetEarsPosition.new :posright => 1                 # => #<Request::SetEarsPosition:0x2ad0b2c70260 @h={:posright=>1}>
   #     SetEarsPosition.new :posright => 5, :posleft => 5  # => #<Request::SetEarsPosition:0x2ad0b2c5e330 @h={:posleft=>5, :posright=>5}>
@@ -137,8 +140,8 @@ module Request
     MIN_POS = 0
     MAX_POS = 16
 
-    # constructor.
-    # take an hash in parameter, with +:posright+ and/or +:posleft+ keys. values should be between MIN_POS and MAX_POS.
+    # take an hash in parameter, with <tt>:posright</tt> and/or <tt>:posleft</tt> keys. values should be between
+    # SetEarsPosition::MIN_POS and SetEarsPosition::MAX_POS.
     def initialize h
       @h = h.dup
       raise ArgumentError.new('at least :posright or :posleft must be set')             unless @h[:posleft] or @h[:posright]
@@ -157,7 +160,7 @@ module Request
 
   # TtsMessage events is used to Text-To-Speach messages.
   #
-  # Examples:
+  # =Examples
   #     TtsMessage.new :tts => "oups!"                                                  # => #<Request::TtsMessage:0x2ab1ba3cd8e0 @h={:tts=>"oups!"}>
   #     TtsMessage.new :tts => "allez hop !", :speed => 200, :voice => "caroline22k"    # => #<Request::TtsMessage:0x2ab1ba3b8e40 @h={:tts=>"allez%20hop%20!", :speed=>200, :voice=>"caroline22k"}>
   #     TtsMessage.new :tts => "GNU is Not Unix", :speed => 200, :pitch => 400          # => #<Request::TtsMessage:0x2ab1ba3a9580 @h={:tts=>"GNU%20is%20Not%20Unix", :speed=>200, :pitch=>400}>
@@ -168,10 +171,9 @@ module Request
     MIN_PITCH = 1
     MAX_PITCH = 32_000
 
-    # constructor.
-    # take an hash in parameter, with at least +:tts+ key. the +:tts+ key must be a string encoded in UTF-8. Optionals
-    # parameters are +:speed+ and +:pitch+, they must be between MIN_SPEED and MAX_SPEED (MIN_PITCH and MAX_PITCH
-    # respectively). Default values for speed/pitch is 100.
+    # take an hash in parameter, with at least <tt>:tts</tt> key. the <tt>:tts</tt> key must be a string encoded
+    # in UTF-8. Optionals parameters are <tt>:speed</tt> and <tt>:pitch</tt>, they must be between MIN_SPEED and
+    # MAX_SPEED (MIN_PITCH and MAX_PITCH respectively). Default values for speed/pitch is 100.
     def initialize h
       raise ArgumentError.new('no :tts given') unless h[:tts]
       @h = h.dup
@@ -201,17 +203,16 @@ module Request
   end
 
 
-  # IdMessage events is used with an message id from Library or a personal MP3 file.
+  # IdMessage events are used with a message id from Library or a personal MP3 file.
   # Library can be seen here : http://my.nabaztag.com/vl/action/myMessagesBiblio.do
   #
-  # Example (Batman):
+  # =Example (Batman)
   #     IdMessage.new :idmessage => 10282    # => #<Request::IdMessage:0x2b28ec730128 @h={:idmessage=>10282}>
   class IdMessage < Base::Event
     MIN_IDMESSAGE = 1
 
-    # constructor.
-    # take an hash in parameter, with at least +:idmessage+ key. the +:tts+ must respond_to to_i and have a to_i
-    # representation greater or equal than MIN_IDMESSAGE.
+    # take an Hash in parameter, with at least <tt>:idmessage</tt> key. the <tt>:idmessage</tt> must respond_to
+    # to_i and have a to_i representation greater or equal than IdMessage::MIN_IDMESSAGE.
     def initialize h
       @h = h.dup
 
@@ -245,20 +246,22 @@ module Request
   end
 
 
-  # Choregraphy in the Violet API looks like binary CSV code. It isn't really userfriendly so we use a DSL (Domain
-  # Specific Language) to describe Choregraphy more easily, and then translate it with this class. This allows us
-  # to describe a more powerful language, that is able (for examples) to set all leds in one sentence, instead of
-  # five 90% redundant lines :
+  # =Choregraphy
+  # Choregraphy in the Violet API looks like binary CSV code. It isn't really "user-friendly".
+  # We use a DSL (Domain Specific Language) to describe Choregraphy more easily, and then translate it in with
+  # this class. This allows us to create a more powerful language, making easy (for examples) to set all leds in
+  # one sentence, instead of five 90% redundant lines :
+  #
   # 'set all to green' will we translated into 'chor=10,0,led,0,0,255,0,0,led,1,0,255,0,0,led,2,0,255,0,0,led,3,0,255,0,0,led,4,0,255,0'
   #
-  # Moreover, if you think that a Choregraphy is a set of events (that are either an ear command either a led
-  # command), then we can use logic operation such as ==, \+, -, | and & on Choregraphy (code taken from test file
+  # Moreover, if you think that a Choregraphy is a Set of Events (that are either an ear command either a led
+  # command), then we can use logic operations such as ==, \+, -, | and & on Choregraphy (code taken from test file
   # test_request_chor.rb):
   #
   #     one     = Choregraphy.new { move left ear forward of degrees 42 }
   #     two     = Choregraphy.new { move right ear forward of degrees 42 }
   #     onetwo  = Choregraphy.new { move both ears forward of degrees 42 }
-
+  #
   #     assert_equal one | two, one + two
   #     assert_equal one & two, Choregraphy.new
   #     assert_equal one - two, one
@@ -272,35 +275,34 @@ module Request
   #     assert_equal onetwo | one, onetwo
   #
   # =Choregraphy Creation
-  # see initialize()
+  # see new
   #
   # =Choregraphy DSL description
-  # Here is the syntax description:
-  # [] are alternation with | or range with -
-  # <> are optionals.
+  # Here is the syntax description: [] are alternation with | or range with - and <> are optionals.
   #
   #     at time 1.2 <do>
   #         move [right|left|both] <ear|ears> [backward|forward] <of> degrees [0-180]
   #         set [bottom|left|middle|right|top|all] <led|leds> to [off|red|green|blue|yellow|magenta|cyan|white|rgb([0-255],[0-255],[0-255])]
   #     <end>
   #
-  # =Examples:
+  # =Examples
   # for examples, please see the test file (namely test_request_chor.rb), because there are a lot of possible
   # chor description and I don't want to duplicate too much code :)
   class Choregraphy < Base::Event
 
-    # Take some Choregraphy DSL code and "transform" it into a Choregraphy description of Violet API.
+
+    # Take some Choregraphy DSL code and translate it into a Choregraphy description of Violet API.
     #
-    # =Arguments
+    # ==Arguments
     # (optionals) an Hash in argument with keys:
     # [name] the chortitle
     # [code] an array of String/Proc or a String/Proc that describe the Choregraphy in our DSL.
     # (optionals) a block of code that describe the Choregraphy.
     # 
-    # =Raise
+    # ==Raise
     # raise a Choregraphy::BadChorDesc if not happy.
     #
-    # =Examples (all results are equals):
+    # ==Examples (all results are equals)
     #   Request::Choregraphy.new { set all off; move right ear forward of degrees 180 } #   => #<Request::Choregraphy:0x2b07a05f8ca0 @chor=["0,led,0,0,0,0", "0,led,1,0,0,0", "0,led,2,0,0,0", "0,led,3,0,0,0", "0,led,4,0,0,0", "0,motor,0,180,0,0"], @code=[#<Proc:0x00002b07a05f8d40@(irb):3>], @time=0>
     #   Request::Choregraphy.new :code => 'set all off; move right ear forward of degrees 180' #   => #<Request::Choregraphy:0x2b07a05e84b8 @chor=["0,led,0,0,0,0", "0,led,1,0,0,0", "0,led,2,0,0,0", "0,led,3,0,0,0", "0,led,4,0,0,0", "0,motor,0,180,0,0"], @code=["set all off; move right ear forward of degrees 180"], @time=0>
     #   Request::Choregraphy.new :code => [ 'set all off', 'move right ear forward of degrees 180' ] #   => #<Request::Choregraphy:0x2b07a05dae30 @chor=["0,led,0,0,0,0", "0,led,1,0,0,0", "0,led,2,0,0,0", "0,led,3,0,0,0", "0,led,4,0,0,0", "0,motor,0,180,0,0"], @code=["set all off", "move right ear forward of degrees 180"], @time=0>
@@ -409,15 +411,14 @@ module Request
     # used internally
     #
 
-    # Command Structs (Ear and Leds)
+    # Command Structs for ears
     EarCommandStruct = Struct.new :element, :direction, :angle, :time
+    # Command Structs for leds
     LedCommandStruct = Struct.new :elements, :color,            :time
 
-    # used by operators + - & |
+    # used by operators == + - & |
     protected
-    def chor
-      @chor
-    end
+    attr_reader :chor
 
     private
 
@@ -582,7 +583,6 @@ module Request
       @id = id
     end
 
-    # Action have only action= option.
     def to_url
         "action=#{@id}"
     end
@@ -590,84 +590,84 @@ module Request
 
 
   # Preview the TTS or music (with music id) without sending it
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_LINKPREVIEW, :serial => my_serial, :token => my_token).send! # => #<Response::LinkPreview:0x2aaaab100f88 @xml=<UNDEFINED> ... </>>
   # see Response::LinkPreview
   GET_LINKPREVIEW = Action.new 1
 
 
   # Get a list of your friends
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_FRIENDS_LIST, :serial => my_serial, :token => my_token).send!    # => #<Response::ListFriend:0x2af08fd53568 @xml=<UNDEFINED> ... </>>
   # see Response::ListFriend
   GET_FRIENDS_LIST = Action.new 2
 
 
   # Get a count and the list of the messages in your inbox
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_INBOX_LIST, :serial => my_serial, :token => my_token).send!  # => #<Response::ListReceivedMsg:0x2aaaab0e0be8 @xml=<UNDEFINED> ... </>>
   # see Response::ListReceivedMsg
   GET_INBOX_LIST = Action.new 3
 
 
   # Get the timezone in which your Nabaztag is set
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_TIMEZONE, :serial => my_serial, :token => my_token).send!    # => #<Response::Timezone:0x2af091e58f60 @xml=<UNDEFINED> ... </>>
   # see Response::Timezone
   GET_TIMEZONE = Action.new 4
  
 
   # Get the signature defined for the Nabaztag
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_SIGNATURE, :serial => my_serial, :token => my_token).send!   # => #<Response::Signature:0x2aaaab0c8c28 @xml=<UNDEFINED> ... </>>
   # see Response::Signature
   GET_SIGNATURE = Action.new 5
 
 
   # Get a count and the list of people in your blacklist
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_BLACKLISTED, :serial => my_serial, :token => my_token).send! # => #<Response::Blacklist:0x2aaaab0b0ad8 @xml=<UNDEFINED> ... </>>
   # see Response::Blacklist
   GET_BLACKLISTED = Action.new 6
 
 
   # Get to know if the Nabaztag is sleeping (YES) or not (NO)
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_RABBIT_STATUS, :serial => my_serial, :token => my_token).send! # => #<Response::RabbitSleep:0x2aaaab092a88 @xml=<UNDEFINED> ... </>>
   # see Response::RabbitSleep
   GET_RABBIT_STATUS = Action.new 7
 
 
   # Get to know if the Nabaztag is a Nabaztag (V1) or a Nabaztag/tag (V2)
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_RABBIT_VERSION, :serial => my_serial, :token => my_token).send!    # => #<Response::RabbitVersion:0x2aaaab07c418 @xml=<UNDEFINED> ... </>>
   # see Response::RabbitVersion
   GET_RABBIT_VERSION = Action.new 8
 
 
   # Get a list of all supported languages/voices for TTS (text to speach) engine
-  # Examples:
+  # Examples
   #         Query.new(:event => GET_LANG_VOICE, :serial => my_serial, :token => my_token).send!    # => #<Response::VoiceListTts:0x2aaaab064368 @xml=<UNDEFINED> ... </>>
   # see Response::VoiceListTts
   GET_LANG_VOICE = Action.new 9
 
 
   # Get the name of the Nabaztag
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_RABBIT_NAME, :serial => my_serial, :token => my_token).send!   # => #<Response::RabbitName:0x2aaaab0459b8 @xml=<UNDEFINED> ... </>>
   # see Response::RabbitName
   GET_RABBIT_NAME = Action.new 10
 
 
   # Get the languages selected for the Nabaztag
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_SELECTED_LANG, :serial => my_serial, :token => my_token).send! # => #<Response::LangListUser:0x2aaaab02bfb8 @xml=<UNDEFINED> ... </>>
   # see Response::LangListUser
   GET_SELECTED_LANG = Action.new 11
 
 
   # Get a preview of a message. This works only with the urlPlay parameter and URLs like broad/001/076/801/262.mp3
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_MESSAGE_PREVIEW, :serial => my_serial, :token => my_token).send!   # => #<Response::LinkPreview:0x2aaaab011258 @xml=<UNDEFINED> ... </>>
   # see Response::LinkPreview
   GET_MESSAGE_PREVIEW = Action.new 12
@@ -675,7 +675,7 @@ module Request
 
   # Get the position of the ears to your Nabaztag. this request is not an action in the Violet API but we do as
   # if it was because it's make more sens (to me).
-  # Examples:
+  # Examples
   #     Query.new(:event => GET_EARS_POSITION, :serial => my_serial, :token => my_token).send! # => #<Response::PositionEar:0x2aaaaaff6908 @xml=<UNDEFINED> ... </>>
   # see Response::PositionEar
   GET_EARS_POSITION = Action.new nil
@@ -686,14 +686,14 @@ module Request
 
 
   # Send your Rabbit to sleep
-  # Examples:
+  # Examples
   #     Query.new(:event => SET_RABBIT_ASLEEP, :serial => my_serial, :token => my_token).send! # => #<Response::CommandSend:0x2aaaaafbf980 @xml=<UNDEFINED> ... </>>
   # see Response::CommandSend
   SET_RABBIT_ASLEEP = Action.new 13
 
 
   # Wake up your Rabbit
-  # Examples:
+  # Examples
   #     Query.new(:event => SET_RABBIT_AWAKE, :serial => my_serial, :token => my_token).send!  # => #<Response::CommandSend:0x2aaaaafa60c0 @xml=<UNDEFINED> ... </>>
   # see Response::CommandSend
   SET_RABBIT_AWAKE = Action.new 14

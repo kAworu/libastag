@@ -24,7 +24,8 @@ module Helpers
 
 
   # ==Credits
-  # taken from active_support/inflector.rb,
+  #     Copyright (c) 2005 David Heinemeier Hansson
+  # taken from active_support/inflector.rb (MIT licence)
   # see http://rubyforge.org/projects/activesupport
   #
   #

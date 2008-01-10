@@ -8,8 +8,8 @@ but other Event derivated class are used to create objects.
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'response.rb'
-require 'helpers.rb'
+require 'response'
+require 'helpers'
 
 
 
@@ -61,7 +61,7 @@ module Libastag
         # create a new EventCollection with two childrens.
         def initialize one, another
           if one.respond_to?(:to_url) and another.respond_to?(:to_url) # \_o<  Coin !
-            @childrens = [ one, another ]
+            @childrens = [one, another]
           else
             raise ArgumentError.new('bad parameters')
           end
@@ -71,7 +71,7 @@ module Libastag
         # usage should be obvious :)
         def each
           @childrens.each do |e|
-            if e.kind_of? Enumerable
+            if e.kind_of?(Enumerable)
               e.each { |i| yield i }
             else
               yield e
@@ -114,11 +114,12 @@ module Libastag
       # return the complet url
       def to_url
         opts = @event.to_url
+        # allow to_url to return an Array like ["foo=bar", "plop=gou"]
         if opts.respond_to?(:join) then opts = opts.join('&') end
 
         base_url = if @event.streamed? then APISTREAM_URL else API_URL end
 
-        "#{base_url}?" << [ "sn=#{@serial}", "token=#{@token}", opts ].join('&')
+        "#{base_url}?sn=#{@serial}&token=#{@token}&#{opts}"
       end
 
       # send the query to the server. it return a ServerRsp object from the corresponding class if no args is given.
@@ -131,9 +132,13 @@ module Libastag
       #  q.send!          # => #<Response::RabbitName:0x2b74b8c38798 @xml=<UNDEFINED> ... </>>
       #  q.send!(:xml)    # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rsp><rabbitName>Makoto</rabbitName></rsp>\n"
       #
-      def send! response_type=nil
+      def send!(response_type=nil)
         rsp = open(self.to_url) { |rsp| rsp.read }
-        if response_type == :xml then rsp else Response.parse(rsp) end
+
+        case response_type
+        when :xml then  rsp
+        else            Response.parse(rsp)
+        end
       end
     end
 
@@ -153,17 +158,18 @@ module Libastag
       # take an hash in parameter, with <tt>:posright</tt> and/or <tt>:posleft</tt> keys. values should be between
       # SetEarsPosition::MIN_POS and SetEarsPosition::MAX_POS.
       def initialize h
+        raise ArgumentError.new('at least :posright or :posleft must be set')             unless h[:posleft] or h[:posright]
+        raise ArgumentError.new(":posright must be between #{MIN_POS} and #{MAX_POS}")    if h[:posright] and not h[:posright].to_i.between?(MIN_POS,MAX_POS)
+        raise ArgumentError.new(":posleft  must be between #{MIN_POS} and #{MAX_POS}")    if h[:posleft ] and not h[:posleft ].to_i.between?(MIN_POS,MAX_POS)
         @h = h.dup
-        raise ArgumentError.new('at least :posright or :posleft must be set')             unless @h[:posleft] or @h[:posright]
-        raise ArgumentError.new(":posright must be between #{MIN_POS} and #{MAX_POS}")    if @h[:posright] and not @h[:posright].to_i.between?(MIN_POS,MAX_POS)
-        raise ArgumentError.new(":posleft  must be between #{MIN_POS} and #{MAX_POS}")    if @h[:posleft ] and not @h[:posleft ].to_i.between?(MIN_POS,MAX_POS)
       end
 
       def to_url
         url = Array.new
         url << "posleft=#{@h[:posleft].to_i}"   if @h[:posleft]
         url << "posright=#{@h[:posright].to_i}" if @h[:posright]
-        url.sort
+
+        return url
       end
     end
 
@@ -192,7 +198,7 @@ module Libastag
           min = Helpers.constantize("#{self.class}::MIN_#{k.to_s.upcase}")
           max = Helpers.constantize("#{self.class}::MAX_#{k.to_s.upcase}")
 
-          unless @h[k].to_i.between?(min,max)
+          unless h[k].to_i.between?(min,max)
             raise ArgumentError.new("#{k} values must be between #{min} and #{max}")
           else
             @h[k] = @h[k].to_i
@@ -226,12 +232,12 @@ module Libastag
       def initialize h
         @h = h.dup
 
-        raise ArgumentError.new('no :idmessage given')                unless @h[:idmessage]
-        raise ArgumentError.new(":idmessage must be greater than #{MIN_IDMESSAGE}")  unless @h[:idmessage].to_i >= MIN_IDMESSAGE
+        raise ArgumentError.new('no :idmessage given') unless @h[:idmessage]
+        raise ArgumentError.new(":idmessage must be greater than #{MIN_IDMESSAGE}") unless @h[:idmessage].to_i >= MIN_IDMESSAGE
 
         @h[:idmessage]    = @h[:idmessage].to_i
 
-        @h[:nabcasttitle] = URI.escape @h[:nabcasttitle] if @h[:nabcasttitle]
+        @h[:nabcasttitle] = URI.escape(@h[:nabcasttitle]) if @h[:nabcasttitle]
         @h[:nabcast]      = @h[:nabcast].to_i if @h[:nabcast]
       end
 
@@ -240,7 +246,7 @@ module Libastag
         @h.each_pair do |key,val|
           url << "#{key}=#{val}" if val
         end
-        url
+        url.sort
       end
     end
 
@@ -265,7 +271,8 @@ module Libastag
       # AudioStream is to give a Hash in argument, with the <tt>:url_list</tt> keys that contains an Array of Strings
       # or a String. see examples.
       def initialize *args
-        raise ArgumentError.new('no args given') if args.empty? or args.first.empty?
+        raise ArgumentError.new('no args given')    if args.empty?
+        raise ArgumentError.new('bad argument')     if args.size == 1 and args.first.nil? or args.first.empty?
         if args.first.is_a?(Hash)
           args = [ args.first[:url_list] ]
           raise ArgumentError.new('empty :url_list key in Hash argument') if args.first.nil? or args.first.empty?

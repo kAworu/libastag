@@ -13,7 +13,7 @@ module Libastag
 
     # REXML::Attributes#to_hash seems to be broken.
     class REXML::Attributes
-      if defined? to_hash
+      if defined?(to_hash)
         alias :to_hash_old :to_hash
       end
 
@@ -21,7 +21,7 @@ module Libastag
       def to_hash
         h = Hash.new
         self.each { |key,value| h[key.to_sym] = value }
-        h
+        return h
       end
     end
 

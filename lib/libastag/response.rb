@@ -79,7 +79,7 @@ module Libastag
         # create a ServerRsp with the raw argument. raw must be the xml text of the server's response. if the xml
         # is malformed, a REXML::ParseException will be raised.
         def initialize raw
-          @xml = REXML::Document.new raw
+          @xml = REXML::Document.new(raw)
         end
 
         # It's possible to access the REXML::Document object if needed, but try to use virtual accessors and get_all
@@ -129,7 +129,7 @@ module Libastag
         end
 
         # here some magic code :)
-        def method_missing(name) #:nodoc:
+        def method_missing name #:nodoc:
           # this method to transforme REXML::Element into text or hash
           filter = Proc.new do |e|
             e.text || e.attributes.to_hash
@@ -144,10 +144,10 @@ module Libastag
           end
 
           case name.to_s
-          when /^has_many_(.+)s\?$/   then get_all($1).size > 1
-          when /^has_(.+)\?$/         then get_all($1).size > 0
-          when /(.*)s$/               then check.call( get_all($1).collect(&filter) )
-          when /(.*)/                 then check.call( get_all($1).collect(&filter) ).first
+          when /^has_many_(.+)s\?$/ then get_all($1).size > 1
+          when /^has_(.+)\?$/       then get_all($1).size > 0
+          when /^(.+)s$/            then check.call( get_all($1).collect(&filter) )
+          when /^(.+)$/             then check.call( get_all($1).collect(&filter) ).first
           end
         end
 
@@ -395,7 +395,7 @@ module Libastag
     #     => Response::RabbitVersion
     #
     def Response.parse raw
-      tmp = Base::ServerRsp.new raw # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
+      tmp = Base::ServerRsp.new(raw) # we shouldn't create ServerRsp instances, but act as if you didn't see ;)
       klassname = if raw =~ %r|<rsp>\s*</rsp>|i
                     'EmptyServerRsp'
                   elsif tmp.has_message?

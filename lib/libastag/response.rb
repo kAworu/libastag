@@ -48,7 +48,7 @@ if you want to access to the REXML::Document object of a ServerRsp you can eithe
 
 =end
 
-$:.unshift(File.dirname(__FILE__))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'helpers.rb'
 

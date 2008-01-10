@@ -6,7 +6,7 @@ but other Event derivated class are used to create objects.
 
 =end
 
-$:.unshift(File.dirname(__FILE__))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'response'
 require 'helpers'

@@ -94,14 +94,14 @@ module Libastag
     # FIXME: should have a parameter :S
     # return the ServerRsp. you can access rsp.message and rsp.comment.
     def link_preview
-      query(Request::GET_LINKPREVIEW)
+      query!(Request::GET_LINKPREVIEW)
     end
 
     # return an array of Strings.
     # Examples TODO
     #   ... [ 'toto', 'tata' ]
     def friends
-      rsp = query(Request::GET_FRIENDS_LIST)
+      rsp = query!(Request::GET_FRIENDS_LIST)
       if rsp.listfriend[:nb].to_i.zero?
         Array.new
       else
@@ -111,7 +111,7 @@ module Libastag
 
     # return an Array of Hash, with <tt>:title</tt>, <tt>:date</tt>, <tt>:from</tt> and <tt>:url</tt> keys.
     def inbox
-      rsp = query(Request::GET_INBOX_LIST)
+      rsp = query!(Request::GET_INBOX_LIST)
       if rsp.listreceivedmsg[:nb].to_i.zero?
         Array.new
       else
@@ -121,19 +121,19 @@ module Libastag
 
     # return the Rabbit's timezone. persistant.
     def timezone
-      @cache[:timezone] ||= query(Request::GET_TIMEZONE).timezone
+      @cache[:timezone] ||= query!(Request::GET_TIMEZONE).timezone
     end
 
     # return the Rabbit's signature. persistant.
     def signature
-      @cache[:signature] ||= query(Request::GET_SIGNATURE).signature
+      @cache[:signature] ||= query!(Request::GET_SIGNATURE).signature
     end
 
     # return an array of Strings.
     # Examples TODO
     #   ... [ 'toto', 'tata' ]
     def blacklisted
-      rsp = query(Request::GET_BLACKLISTED)
+      rsp = query!(Request::GET_BLACKLISTED)
       if rsp.blacklist[:nb].to_i.zero?
         Array.new
       else
@@ -143,7 +143,7 @@ module Libastag
 
     # return +true+ if the Rabbit is asleep, +false+ otherwhise.
     def asleep?
-      query(Request::GET_RABBIT_STATUS).rabbitSleep =~ /YES/i
+      query!(Request::GET_RABBIT_STATUS).rabbitSleep =~ /YES/i
     end
 
     # return +true+ if the Rabbit is awake, +false+ otherwhise.
@@ -155,7 +155,7 @@ module Libastag
     #
     # see is_a_tag_tag?
     def version
-      @cache[:version] ||= query(Request::GET_RABBIT_VERSION).rabbitVersion
+      @cache[:version] ||= query!(Request::GET_RABBIT_VERSION).rabbitVersion
     end
 
     # return +true+ if the Rabbit is a nabaztag/tag ("V2" Rabbit), +false+ otherwhise.
@@ -167,26 +167,30 @@ module Libastag
     # Examples TODO
     #   ... {:fr => "claire22k", :de => "helga22k"}
     def voices
-        @cache[:voices] ||= query(Request::GET_LANG_VOICE).voices.inject(Hash.new) { |h,i| h[i[:lang].to_sym] = i[:command]; h }
+        @cache[:voices] ||= query!(Request::GET_LANG_VOICE).voices.inject(Hash.new) { |h,i| h[i[:lang].to_sym] = i[:command]; h }
     end
 
     # return the Rabbit name. persistant.
     def name
-      @cache[:name] ||= query(Request::GET_RABBIT_NAME).rabbitName
+      @cache[:name] ||= query!(Request::GET_RABBIT_NAME).rabbitName
     end
 
     # return an array of languages.
     # Examples TODO
     #   ... [ "fr", "us", "uk", "de" ]
     def langs
-      @cache[:langs] ||= query(Request::GET_SELECTED_LANG).myLangs.collect { |l| l[:lang] }
+      @cache[:langs] ||= query!(Request::GET_SELECTED_LANG).myLangs.collect { |l| l[:lang] }
     end
 
     # FIXME: should have a parameter :S
     def msg_preview
-      query(Request::GET_MESSAGE_PREVIEW)
+      query!(Request::GET_MESSAGE_PREVIEW)
     end
 
+    # return the ears position
+    def ears_position
+      query!(Request::GET_EARS_POSITION)
+    end
     # send the Rabbit to sleep. return the sever's response.
     def sleep!
       query(Request::SET_RABBIT_ASLEEP)
@@ -194,14 +198,18 @@ module Libastag
 
     # wake up the Rabbit. return the sever's response.
     def wakeup!
-      query(Request::SET_RABBIT_AWAKE)
+      query!(Request::SET_RABBIT_AWAKE)
     end
 
-    private
     # used to send Query, and check the ServerRsp.
     def query event
-      rsp = Request::Query.new(:token  => @token, :serial => @serial, :event => event).send!
-      raise "unhandled server's response : #{rsp.inspect}" unless rsp.good?
+      Request::Query.new(:token  => @token, :serial => @serial, :event => event).send!
+    end
+    
+    def query! event
+      rsp = query event
+      # FIXME: convert into raw xml
+      raise "bad response : #{rsp.inspect}" unless rsp.good?
       rsp
     end
 

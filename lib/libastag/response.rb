@@ -190,52 +190,52 @@ module Libastag
 
 
     # Wrong music id (either not in your personal MP3s list or not existing)
-    #     rsp.message     # => "MESSAGENOTSEND"
+    #     rsp.message     # => "MESSAGENOTSENT"
     #     rsp.comment     # => "Your idmessage is not correct or is private"
-    class MessageNotSend < Base::BadServerRsp; end
+    class MessageNotSent < Base::BadServerRsp; end
 
 
     # Nabcast not posted because music id is not part of your personal MP3s or because the nabcast id does not belong
     # to you or is not existing
-    #     rsp.message     # => "NABCASTNOTSEND"
+    #     rsp.message     # => "NABCASTNOTSENT"
     #     rsp.comment     # => "Your idmessage is private"
     #
-    #     rsp.message     # => "NABCASTNOTSEND"
+    #     rsp.message     # => "NABCASTNOTSENT"
     #     rsp.comment     # => "Your nabcast id is not correct or is private"
-    class NabCastNotSend < Base::BadServerRsp; end
+    class NabCastNotSent < Base::BadServerRsp; end
 
 
     # Message not sent
-    #     rsp.message     # => "MESSAGENOTSEND"
+    #     rsp.message     # => "MESSAGENOTSENT"
     #     rsp.comment     # => "Your message could not be sent"
-    class MessageNotSend < Base::BadServerRsp; end
+    class MessageNotSent < Base::BadServerRsp; end
 
 
     # TTS creation problem or TTS not send
-    #     rsp.message     # => "TTSNOTSEND"
+    #     rsp.message     # => "TTSNOTSENT"
     #     rsp.comment     # => "Your text could not be sent"
     #                     
-    #     rsp.message     # => "TTSNOTSEND"
+    #     rsp.message     # => "TTSNOTSENT"
     #     rsp.comment     # => "Your text could not be sent"
-    class TtsNotSend < Base::BadServerRsp; end
+    class TtsNotSent < Base::BadServerRsp; end
 
 
     # Choregraphy message not sent because the "chor" command was incorrect
-    #     rsp.message     # => "CHORNOTSEND"
+    #     rsp.message     # => "CHORNOTSENT"
     #     rsp.comment     # => "Your chor could not be sent (bad chor)"
-    class ChorNotSend < Base::BadServerRsp; end
+    class ChorNotSent < Base::BadServerRsp; end
 
 
     # Ears position not sent because the given position is incorrect
-    #     rsp.message     # => "EARPOSITIONNOTSEND"
+    #     rsp.message     # => "EARPOSITIONNOTSENT"
     #     rsp.comment     # => "Your ears command could not be sent"
-    class EarPositionNotSend < Base::BadServerRsp; end
+    class EarPositionNotSent < Base::BadServerRsp; end
 
 
     # URL was not sent (api_stream)
-    #     rsp.message     # => "WEBRADIONOTSEND"
+    #     rsp.message     # => "WEBRADIONOTSENT"
     #     rsp.comment     # => "Your webradio could not be sent"
-    class WebRadioNotSend < Base::BadServerRsp; end
+    class WebRadioNotSent < Base::BadServerRsp; end
 
 
     #  urlList parameter missing (api_stream)
@@ -256,39 +256,39 @@ module Libastag
 
 
     # Nabcast posted
-    #     rsp.message     # => "NABCASTSEND"
+    #     rsp.message     # => "NABCASTSENT"
     #     rsp.comment     # => "Your nabcast has been sent"
-    class NabCastSend < Base::GoodServerRsp; end
+    class NabCastSent < Base::GoodServerRsp; end
 
 
     # Message sent
-    #     rsp.message     # => "MESSAGESEND"
+    #     rsp.message     # => "MESSAGESENT"
     #     rsp.comment     # => "Your message has been sent"
-    class MessageSend < Base::GoodServerRsp; end
+    class MessageSent < Base::GoodServerRsp; end
 
 
     # TTS message sent
-    #     rsp.message     # => "TTSSEND"
+    #     rsp.message     # => "TTSSENT"
     #     rsp.comment     # => "Your text has been sent"
-    class TtsSend < Base::GoodServerRsp; end
+    class TtsSent < Base::GoodServerRsp; end
 
 
     # Choregraphy message sent
-    #     rsp.message     # => "CHORSEND"
+    #     rsp.message     # => "CHORSENT"
     #     rsp.comment     # => "Your chor has been sent"
-    class ChorSend < Base::GoodServerRsp; end
+    class ChorSent < Base::GoodServerRsp; end
 
 
     # Ears position sent
-    #     rsp.message     # => "EARPOSITIONSEND"
+    #     rsp.message     # => "EARPOSITIONSENT"
     #     rsp.comment     # => "Your ears command has been sent"
-    class EarPositionSend < Base::GoodServerRsp; end
+    class EarPositionSent < Base::GoodServerRsp; end
 
 
     # URL was sent (api_stream)
-    #     rsp.message     # => "WEBRADIOSEND"
+    #     rsp.message     # => "WEBRADIOSENT"
     #     rsp.comment     # => "Your webradio has been sent"
-    class WebRadioSend < Base::GoodServerRsp; end
+    class WebRadioSent < Base::GoodServerRsp; end
 
 
     # Getting the ears position
@@ -361,11 +361,11 @@ module Libastag
 
 
     # Command has been send.
-    #     rsp.message     # => "COMMANDSEND"
+    #     rsp.message     # => "COMMANDSENT"
     #     rsp.comment     # => "You rabbit will change status"
     #
     # see Request::SET_RABBIT_ASLEEP and Request::SET_RABBIT_AWAKE
-    class CommandSend < Base::GoodServerRsp; end
+    class CommandSent < Base::GoodServerRsp; end
 
 
     # ==Summary

@@ -152,11 +152,11 @@ class QueryAndActionTest < Test::Unit::TestCase
 
   def test_SET_RABBIT_ASLEEP
     rsp = Libastag::Request::Query.new(:event => Libastag::Request::SET_RABBIT_ASLEEP, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::CommandSend, rsp
+    assert_instance_of Libastag::Response::CommandSent, rsp
   end
 
   def test_SET_RABBIT_AWAKE
     rsp = Libastag::Request::Query.new(:event => Libastag::Request::SET_RABBIT_AWAKE, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::CommandSend, rsp
+    assert_instance_of Libastag::Response::CommandSent, rsp
   end
 end

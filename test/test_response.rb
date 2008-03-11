@@ -181,14 +181,14 @@ class ResponseTest < Test::Unit::TestCase
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
-  def test_CommandSend
+  def test_CommandSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>COMMANDSENT</message><comment>You rabbit will change status</comment></rsp>'
-    assert_instance_of  Libastag::Response::CommandSend, rsp
+    assert_instance_of  Libastag::Response::CommandSent, rsp
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
   def test_AbuseSending
-    rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>ABUSESENTING</message><comment>Too much message sending,try later</comment></rsp>'
+    rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>ABUSESENDING</message><comment>Too much message sending,try later</comment></rsp>'
     assert_instance_of  Libastag::Response::AbuseSending, rsp
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
@@ -199,63 +199,63 @@ class ResponseTest < Test::Unit::TestCase
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
 
-  def test_MessageNotSend
+  def test_MessageNotSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>MESSAGENOTSENT</message><comment>Your idmessage is not correct or is private</comment></rsp>'
-    assert_instance_of  Libastag::Response::MessageNotSend, rsp
+    assert_instance_of  Libastag::Response::MessageNotSent, rsp
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
 
-  def test_NabCastNotSend
+  def test_NabCastNotSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>NABCASTNOTSENT</message><comment>Your idmessage is private</comment></rsp>'
-    assert_instance_of  Libastag::Response::NabCastNotSend, rsp
+    assert_instance_of  Libastag::Response::NabCastNotSent, rsp
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
 
-  def test_NabCastSend
+  def test_NabCastSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>NABCASTSENT</message><comment>Your nabcast has been sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::NabCastSend, rsp
+    assert_instance_of  Libastag::Response::NabCastSent, rsp
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
   
-  def test_MessageSend
+  def test_MessageSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>MESSAGESENT</message><comment>Your message has been sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::MessageSend, rsp
+    assert_instance_of  Libastag::Response::MessageSent, rsp
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
-  def test_TtsNotSend
+  def test_TtsNotSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>TTSNOTSENT</message><comment>Your text could not be sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::TtsNotSend, rsp
+    assert_instance_of  Libastag::Response::TtsNotSent, rsp
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
 
-  def test_TtsSend
+  def test_TtsSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>TTSSENT</message><comment>Your text has been sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::TtsSend, rsp
+    assert_instance_of  Libastag::Response::TtsSent, rsp
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
-  def test_ChorSend
+  def test_ChorSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>CHORSENT</message><comment>Your chor has been sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::ChorSend, rsp
+    assert_instance_of  Libastag::Response::ChorSent, rsp
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
-  def test_ChorNotSend
+  def test_ChorNotSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>CHORNOTSENT</message><comment>Your chor could not be sent (bad chor)</comment></rsp>'
-    assert_instance_of  Libastag::Response::ChorNotSend, rsp
+    assert_instance_of  Libastag::Response::ChorNotSent, rsp
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
 
-  def test_EarPositionSend
+  def test_EarPositionSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>EARPOSITIONSENT</message><comment>Your ears command has been sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::EarPositionSend, rsp
+    assert_instance_of  Libastag::Response::EarPositionSent, rsp
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
-  def test_EarPositionNotSend
+  def test_EarPositionNotSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>EARPOSITIONNOTSENT</message><comment>Your ears command could not be sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::EarPositionNotSend, rsp
+    assert_instance_of  Libastag::Response::EarPositionNotSent, rsp
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
 
@@ -265,15 +265,15 @@ class ResponseTest < Test::Unit::TestCase
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
-  def test_WebRadioSend
+  def test_WebRadioSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>WEBRADIOSENT</message><comment>Your webradio has been sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::WebRadioSend, rsp
+    assert_instance_of  Libastag::Response::WebRadioSent, rsp
     assert_kind_of      Libastag::Response::Base::GoodServerRsp, rsp
   end
 
-  def test_WebRadioNotSend
+  def test_WebRadioNotSent
     rsp = Libastag::Response.parse '<?xml version="1.0" encoding="UTF-8"?><rsp><message>WEBRADIONOTSENT</message><comment>Your webradio could not be sent</comment></rsp>'
-    assert_instance_of  Libastag::Response::WebRadioNotSend, rsp
+    assert_instance_of  Libastag::Response::WebRadioNotSent, rsp
     assert_kind_of      Libastag::Response::Base::BadServerRsp, rsp
   end
 

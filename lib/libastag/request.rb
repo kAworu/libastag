@@ -400,7 +400,7 @@ module Libastag
       # + has the same behaviour that |
       %w[+ - & |].each do |op|
         define_method(op) do |other|
-          new_chor = if self.chor.nil? then other.chor.method(op).call(self.chor).uniq.sort else self.chor.method(op).call(other.chor).uniq.sort end
+          new_chor = (if self.chor.nil? then other.chor.method(op).call(self.chor) else self.chor.method(op).call(other.chor) end).uniq.sort
           ret = Choregraphy.new
           ret.instance_eval { @chor = new_chor } # hacky !
           ret

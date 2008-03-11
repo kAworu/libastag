@@ -1,6 +1,5 @@
+- Complete the high level API (libastag.rb)
 - test ServerRsp#raw.
-- write test/doc for Query with :rabbit arg.
 - add variable tempo to chor
 - make a idMessage db for library
 - work on fake server?
-- Complete the high level API (libastag.rb)

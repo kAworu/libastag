@@ -227,6 +227,7 @@ module Libastag
     def ears_position
       query!(Request::GET_EARS_POSITION)
     end
+
     # send the Rabbit to sleep. return the sever's response.
     #
     # =Examples
@@ -252,7 +253,7 @@ module Libastag
     end
     
     def query! event
-      rsp = query event
+      rsp = query(event)
       raise "bad response : #{rsp.raw}" unless rsp.good?
       rsp
     end

@@ -76,16 +76,18 @@ module Libastag
       # 'message' element. rsp.message will return the first message element and rsp.messages will return an Array
       # that contains all message elements of rsp (see doc of Response module for examples).
       class ServerRsp
+
         # create a ServerRsp with the raw argument. raw must be the xml text of the server's response. if the xml
         # is malformed, a REXML::ParseException will be raised.
         def initialize raw
-          @xml = REXML::Document.new(raw)
+          @raw, @xml = raw, REXML::Document.new(raw)
         end
 
-        # It's possible to access the REXML::Document object if needed, but try to use virtual accessors and get_all
+        # It's possible to access the +xml+ (REXML::Document) object if needed, but try to use virtual accessors and get_all
         # if possible.
-        attr_reader :xml
-
+        # The +raw+ (String, XML response) object is used for debbuging but can be used too.
+        attr_reader :xml, :raw
+        # It's possible to access the raw xml (used for debbuging purpose).
         # return +true+ if the response is not an error, +false+ otherwhise.
         def good?
           self.is_a? GoodServerRsp

@@ -1,3 +1,4 @@
+- test ServerRsp#raw.
 - write test/doc for Query with :rabbit arg.
 - add variable tempo to chor
 - make a idMessage db for library

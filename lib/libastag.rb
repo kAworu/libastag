@@ -14,6 +14,7 @@ module Libastag
   # it receive events and  retrieve information
   # from your user account or your #Rabbit
   # (see public methods).
+  # TODO: document persistant
   class Rabbit
     # used to check serial
     SERIAL_MATCHER = /^[0-9A-F]+$/i
@@ -56,7 +57,7 @@ module Libastag
       @token  = h[:token].to_i
 #     _________                     _________
 #    /         \                   /         \
-     @right_ear,                    @left_ear          = RabbitEar.new(:right), RabbitEar.new(:left)
+     @right_ear,                    @left_ear          = RabbitEar.new(self,:right), RabbitEar.new(self,:left)
 #   |           |                 |           |
 #   |           |                 |           |
 #   |           |                 |           |
@@ -73,12 +74,12 @@ module Libastag
 #   |         |                     |         |
 #   |                                         |
 #   |                  ___                    |
-                     @top_led                           = RabbitLed.new(:top)
+                     @top_led                           = RabbitLed.new(self,:top)
 #   |                   |                     |
 #   |                                         |
 #   |                                         |
 #   |                                         |
-     @right_led,    @middle_led,     @left_led          = RabbitLed.new(:right), RabbitLed.new(:middle), RabbitLed.new(:left)
+     @right_led,    @middle_led,     @left_led          = RabbitLed.new(self,:right), RabbitLed.new(self,:middle), RabbitLed.new(self,:left)
 #   |                                         |
 #   |                                         |
 #   |                                         |
@@ -86,19 +87,24 @@ module Libastag
 #   |                                         |
 #   |                   |                     |
 #  /                                           \
-                    @bottom_led                         = RabbitLed.new(:bottom)
+                    @bottom_led                         = RabbitLed.new(self,:bottom)
 # -----------------------------------------------
     end
 
 
     # FIXME: should have a parameter :S
     # return the ServerRsp. you can access rsp.message and rsp.comment.
+    #
+    # =Examples
+    # TODO
     def link_preview
       query!(Request::GET_LINKPREVIEW)
     end
 
     # return an array of Strings.
-    # Examples TODO
+    #
+    # =Examples
+    # TODO
     #   ... [ 'toto', 'tata' ]
     def friends
       rsp = query!(Request::GET_FRIENDS_LIST)
@@ -110,6 +116,9 @@ module Libastag
     end
 
     # return an Array of Hash, with <tt>:title</tt>, <tt>:date</tt>, <tt>:from</tt> and <tt>:url</tt> keys.
+    #
+    # =Examples
+    # TODO
     def inbox
       rsp = query!(Request::GET_INBOX_LIST)
       if rsp.listreceivedmsg[:nb].to_i.zero?
@@ -120,17 +129,23 @@ module Libastag
     end
 
     # return the Rabbit's timezone. persistant.
+    #
+    # =Examples
+    #   my_rabbit.timezone # => "(GMT + 01:00) Bruxelles, Copenhague, Madrid, Paris"
     def timezone
       @cache[:timezone] ||= query!(Request::GET_TIMEZONE).timezone
     end
 
     # return the Rabbit's signature. persistant.
+    # FIX
     def signature
       @cache[:signature] ||= query!(Request::GET_SIGNATURE).signature
     end
 
     # return an array of Strings.
-    # Examples TODO
+    #
+    # =Examples
+    # TODO
     #   ... [ 'toto', 'tata' ]
     def blacklisted
       rsp = query!(Request::GET_BLACKLISTED)
@@ -142,41 +157,59 @@ module Libastag
     end
 
     # return +true+ if the Rabbit is asleep, +false+ otherwhise.
+    #
+    # =Examples
+    # TODO
     def asleep?
-      query!(Request::GET_RABBIT_STATUS).rabbitSleep =~ /YES/i
+      query!(Request::GET_RABBIT_STATUS).rabbitSleep.downcase == 'yes'
     end
 
     # return +true+ if the Rabbit is awake, +false+ otherwhise.
+    #
+    # =Examples
+    # TODO
     def awake?
       not asleep?
     end
 
     # return the Rabbit's version ("V2" or "V1"). persistant.
-    #
     # see is_a_tag_tag?
+    #
+    # =Examples
+    # TODO
     def version
       @cache[:version] ||= query!(Request::GET_RABBIT_VERSION).rabbitVersion
     end
 
     # return +true+ if the Rabbit is a nabaztag/tag ("V2" Rabbit), +false+ otherwhise.
+    #
+    # =Examples
+    # TODO
     def is_a_tag_tag?
-      self.version =~ /V2/i
+      self.version.downcase == 'v2'
     end
 
     # return a Hash. persistant.
-    # Examples TODO
+    #
+    # =Examples
+    # TODO
     #   ... {:fr => "claire22k", :de => "helga22k"}
     def voices
         @cache[:voices] ||= query!(Request::GET_LANG_VOICE).voices.inject(Hash.new) { |h,i| h[i[:lang].to_sym] = i[:command]; h }
     end
 
     # return the Rabbit name. persistant.
+    #
+    # =Examples
+    # TODO
     def name
       @cache[:name] ||= query!(Request::GET_RABBIT_NAME).rabbitName
     end
 
     # return an array of languages.
-    # Examples TODO
+    #
+    # =Examples
+    # TODO
     #   ... [ "fr", "us", "uk", "de" ]
     def langs
       @cache[:langs] ||= query!(Request::GET_SELECTED_LANG).myLangs.collect { |l| l[:lang] }
@@ -188,43 +221,56 @@ module Libastag
     end
 
     # return the ears position
+    #
+    # =Examples
+    # TODO
     def ears_position
       query!(Request::GET_EARS_POSITION)
     end
     # send the Rabbit to sleep. return the sever's response.
+    #
+    # =Examples
+    # TODO
     def sleep!
       query(Request::SET_RABBIT_ASLEEP)
     end
 
     # wake up the Rabbit. return the sever's response.
+    #
+    # =Examples
+    # TODO
     def wakeup!
       query!(Request::SET_RABBIT_AWAKE)
     end
 
     # used to send Query, and check the ServerRsp.
+    #
+    # =Examples
+    # TODO
     def query event
       Request::Query.new(:token  => @token, :serial => @serial, :event => event).send!
     end
     
     def query! event
       rsp = query event
-      # FIXME: convert into raw xml
-      raise "bad response : #{rsp.inspect}" unless rsp.good?
+      raise "bad response : #{rsp.raw}" unless rsp.good?
       rsp
     end
 
   end # class Rabbit
 
 
-  class RabbitLed
-    def initialize x
-    end
-  end
-  
-
   class RabbitEar
-    def initialize x
+    def initialize(rabbit, position)
+      @rabbit, @positon = rabbit, position
     end
   end
-end
+
+  class RabbitLed
+    def initialize(rabbit, position)
+      @rabbit, @positon = rabbit, position
+    end
+  end
+
+end # module Libastag
 

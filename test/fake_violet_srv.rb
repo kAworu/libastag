@@ -30,8 +30,8 @@ module FakeVioletSrv
       '<rabbitName>nabmaster</rabbitName>',
       '<langListUser nb="4"/><myLang lang="fr"/><myLang lang="us"/><myLang lang="uk"/><myLang lang="de"/>' ,
       '<message>LINKPREVIEW</message><comment>XXXX</comment>',
-      '<message>COMMANDSEND</message><comment>You rabbit will change status</comment>',
-      '<message>COMMANDSEND</message><comment>You rabbit will change status</comment>'
+      '<message>COMMANDSENT</message><comment>You rabbit will change status</comment>',
+      '<message>COMMANDSENT</message><comment>You rabbit will change status</comment>'
   ]
 
   class VioletApiServelet < HTTPServlet::AbstractServlet

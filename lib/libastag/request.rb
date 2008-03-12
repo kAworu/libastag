@@ -310,7 +310,7 @@ module Libastag
 
 
     # =Choregraphy
-    # Choregraphy in the Violet API looks like binary CSV code. It isn't really "user-friendly".
+    # Choregraphy in the Violet API looks like binary/CSV code. It isn't really "user-friendly".
     # We use a DSL (Domain Specific Language) to describe Choregraphy more easily, and then translate it in with
     # this class. This allows us to create a more powerful language, making easy (for examples) to set all leds in
     # one sentence, instead of five 90% redundant lines :

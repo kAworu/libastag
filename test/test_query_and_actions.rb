@@ -33,7 +33,7 @@ class QueryAndActionTest < Test::Unit::TestCase
 
   LOCAL_URI     = 'http://localhost:3000/api.jsp'
 
-  # Hacky ! yes !
+  # Sweet Hack
   Libastag::Request::API_URL = LOCAL_URI
 
 
@@ -78,6 +78,10 @@ class QueryAndActionTest < Test::Unit::TestCase
   end
 
 
+  def good_query_sender(e)
+    Libastag::Request::Query.new(:event => e, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
+  end
+
   def test_wrong_serial
     rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_RABBIT_NAME, :serial => BAD_SERIAL, :token => GOOD_TOKEN).send!
     assert_instance_of Libastag::Response::NoGoodTokenOrSerial, rsp
@@ -90,73 +94,20 @@ class QueryAndActionTest < Test::Unit::TestCase
   end
 
 
-  def test_GET_LINKPREVIEW
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_LINKPREVIEW, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::LinkPreview, rsp
-  end
-
-  def test_GET_FRIENDS_LIST
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_FRIENDS_LIST, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::ListFriend, rsp
-  end
-
-  def test_GET_INBOX_LIST
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_INBOX_LIST, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::ListReceivedMsg, rsp
-  end
-
-  def test_GET_TIMEZONE
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_TIMEZONE, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::Timezone, rsp
-  end
-
-  def test_GET_SIGNATURE
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_SIGNATURE, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::Signature, rsp
-  end
-
-  def test_GET_BLACKLISTED
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_BLACKLISTED, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::Blacklist, rsp
-  end
-
-  def test_GET_RABBIT_STATUS
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_RABBIT_STATUS, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::RabbitSleep, rsp
-  end
-
-  def test_GET_LANG_VOICE
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_LANG_VOICE, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::VoiceListTts, rsp
-  end
-
-  def test_GET_RABBIT_NAME
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_RABBIT_NAME, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::RabbitName, rsp
-  end
-
-  def test_GET_SELECTED_LANG
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_SELECTED_LANG, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::LangListUser, rsp
-  end
-
-  def test_GET_MESSAGE_PREVIEW
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_MESSAGE_PREVIEW, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::LinkPreview, rsp
-  end
-
-  def test_GET_EARS_POSITION
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::GET_EARS_POSITION, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::PositionEar, rsp
-  end
-
-  def test_SET_RABBIT_ASLEEP
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::SET_RABBIT_ASLEEP, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::CommandSent, rsp
-  end
-
-  def test_SET_RABBIT_AWAKE
-    rsp = Libastag::Request::Query.new(:event => Libastag::Request::SET_RABBIT_AWAKE, :serial => GOOD_SERIAL, :token => GOOD_TOKEN).send!
-    assert_instance_of Libastag::Response::CommandSent, rsp
+  def test_all_actions
+    assert_instance_of Libastag::Response::LinkPreview,     good_query_sender(Libastag::Request::GET_LINKPREVIEW)
+    assert_instance_of Libastag::Response::ListFriend,      good_query_sender(Libastag::Request::GET_FRIENDS_LIST)
+    assert_instance_of Libastag::Response::ListReceivedMsg, good_query_sender(Libastag::Request::GET_INBOX_LIST)
+    assert_instance_of Libastag::Response::Timezone,        good_query_sender(Libastag::Request::GET_TIMEZONE)
+    assert_instance_of Libastag::Response::Signature,       good_query_sender(Libastag::Request::GET_SIGNATURE)
+    assert_instance_of Libastag::Response::Blacklist,       good_query_sender(Libastag::Request::GET_BLACKLISTED)
+    assert_instance_of Libastag::Response::RabbitSleep,     good_query_sender(Libastag::Request::GET_RABBIT_STATUS)
+    assert_instance_of Libastag::Response::VoiceListTts,    good_query_sender(Libastag::Request::GET_LANG_VOICE)
+    assert_instance_of Libastag::Response::RabbitName,      good_query_sender(Libastag::Request::GET_RABBIT_NAME)
+    assert_instance_of Libastag::Response::LangListUser,    good_query_sender(Libastag::Request::GET_SELECTED_LANG)
+    assert_instance_of Libastag::Response::LinkPreview,     good_query_sender(Libastag::Request::GET_MESSAGE_PREVIEW)
+    assert_instance_of Libastag::Response::PositionEar,     good_query_sender(Libastag::Request::GET_EARS_POSITION)
+    assert_instance_of Libastag::Response::CommandSent,     good_query_sender(Libastag::Request::SET_RABBIT_ASLEEP)
+    assert_instance_of Libastag::Response::CommandSent,     good_query_sender(Libastag::Request::SET_RABBIT_AWAKE)
   end
 end

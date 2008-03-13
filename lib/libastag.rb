@@ -288,7 +288,7 @@ module Libastag
     end
 
     # interface to Choregraphy
-    def dance(h, &block)
+    def dance(h=Hash.new, &block)
       query! Choregraphy.new(h, &block)
     end
   end # class Rabbit

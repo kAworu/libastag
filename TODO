@@ -1,4 +1,3 @@
-- Complete the high level API (libastag.rb)
 - test ServerRsp#raw.
 - add variable tempo to chor
 - make a idMessage db for library

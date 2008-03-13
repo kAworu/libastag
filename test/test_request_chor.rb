@@ -64,6 +64,7 @@ class ChoregraphyTest < Test::Unit::TestCase
 
   def test_at_time_syntax
     ary = Array.new
+
     ary << Choregraphy.new do
       at time 0
         set right led to green

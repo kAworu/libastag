@@ -106,14 +106,23 @@ module Libastag
 # -----------------------------------------------
     end
 
-    # used to send Query, and check the ServerRsp.
+    # used to send Query, return a ServerRsp.
     #
     # =Examples
-    # TODO
+    #   # send a GET_EARS_POSITION action:
+    #   my_rabbit.query Libastag::Request::GET_EARS_POSITION # => => #<Libastag::Response::NoGoodTokenOrSerial:0x2ab23bb9bca8 ...>
     def query event
       Request::Query.new(:token  => @token, :serial => @serial, :event => event).send!
     end
     
+    # used to send Query, and check the ServerRsp. It's the "strict" version of query because it raise a
+    # RabbitException if server's response is bad.
+    #
+    # =Examples
+    #   # send a GET_EARS_POSITION action:
+    #   my_rabbit.query! Libastag::Request::GET_EARS_POSITION
+    #   Libastag::RabbitException: bad response : <?xml version="1.0" encoding="UTF-8"?><rsp><message>NOGOODTOKENORSERIAL</message><comment>Your token or serial number are not correct !</comment></rsp>
+    #           from libastag.rb:119:in `query!'
     def query! event
       rsp = query(event)
       raise RabbitException.new("bad response : #{rsp.raw}", rsp) unless rsp.good?
@@ -219,8 +228,8 @@ module Libastag
     # return a Hash. persistant.
     #
     # =Examples
-    # TODO
-    #   ... {:fr => "claire22k", :de => "helga22k"}
+    #   my_rabbit.voices
+    #   => {:po=>"ester22k", :tu=>"baris22k", :nl=>"femke22k", :pl=>"magda22s", :es=>"maria22k", :os=>"kari22k", :uk=>"kate22k", :us=>"aaron22s", :su=>"matti22k", :da=>"poul22k", :sv=>"ingmar22k", :br=>"paola22k", :fr=>"claire22k", :it=>"chiara22k", :is=>"snorri22k", :de=>"gerhard22k", :fl=>"sofie22k"}
     def voices
         @cache[:voices] ||= query!(Request::GET_LANG_VOICE).voices.inject(Hash.new) { |h,i| h[i[:lang].to_sym] = i[:command]; h }
     end
@@ -228,7 +237,7 @@ module Libastag
     # return the Rabbit name. persistant.
     #
     # =Examples
-    # TODO
+    #   my_rabbit.name # => "Bond, James Bond."
     def name
       @cache[:name] ||= query!(Request::GET_RABBIT_NAME).rabbitName
     end
@@ -236,8 +245,7 @@ module Libastag
     # return an array of languages.
     #
     # =Examples
-    # TODO
-    #   ... [ "fr", "us", "uk", "de" ]
+    #   my_rabbit.langs # => ["fr"]
     def langs
       @cache[:langs] ||= query!(Request::GET_SELECTED_LANG).myLangs.collect { |l| l[:lang] }
     end
@@ -250,7 +258,7 @@ module Libastag
     # return the ears position
     #
     # =Examples
-    # TODO
+    #   my_rabbit.ears_position # => #<Libastag::Response::PositionEar:0x2b79c5523608 @xml=<UNDEFINED> ... </>, @raw="<?xml version=\"1.0\" encoding=\"UTF-8\"?><rsp><message>POSITIONEAR</message><leftposition>5</leftposition><rightposition>14</rightposition></rsp>\n">
     def ears_position
       query! Request::GET_EARS_POSITION
     end
@@ -258,7 +266,7 @@ module Libastag
     # send the Rabbit to sleep. return the sever's response.
     #
     # =Examples
-    # TODO
+    #   my_rabbit.sleep! # => #<Libastag::Response::CommandSent ...>
     def sleep!
       query! Request::SET_RABBIT_ASLEEP
     end
@@ -266,30 +274,36 @@ module Libastag
     # wake up the Rabbit. return the sever's response.
     #
     # =Examples
-    # TODO
+    #   my_rabbit.wakeup! # => #<Libastag::Response::CommandSent ...>
     def wakeup!
       query! Request::SET_RABBIT_AWAKE
     end
 
-    # interface to TtsMessage.
+    # interface to TtsMessage. For examples see Request::TtsMessage and Request::TtsMessage.new.
     def say h
-      query! TtsMessage.new(h)
+      query! Request::TtsMessage.new(h)
     end
 
     # interface to idMessage/AudioStream
+    #
+    # =Examples
+    # TODO
     def sing *args
       event = if args.first.respond_to?(:has_key?) and args.first.has_key?(:idmessage)
-                IdMessage.new(args.first)
+                Request::IdMessage.new(args.first)
               else
-                AudioStream.new(args.flatten)
+                Request::AudioStream.new(args.flatten)
               end
 
       query! event
     end
 
     # interface to Choregraphy
+    #
+    # =Examples
+    # TODO
     def dance(h=Hash.new, &block)
-      query! Choregraphy.new(h, &block)
+      query! Request::Choregraphy.new(h, &block)
     end
   end # class Rabbit
 
